@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from matejchain.base import ToolBase
+from llmbrix.base import ToolBase
 
 
 class GetDatetime(ToolBase):

@@ -1,4 +1,4 @@
-from matejchain.msg import AssistantMsg, MsgBase, SystemMsg, ToolMsg, UserMsg
+from llmbrix.msg import AssistantMsg, MsgBase, SystemMsg, ToolMsg, UserMsg
 
 
 class ConvTurn:

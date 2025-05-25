@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from matejchain.base.api_compatible_base import ApiCompatibleBase
+from llmbrix.base.api_compatible_base import ApiCompatibleBase
 
 PARAM_TYPE_MAP = {str: "string", int: "integer", bool: "boolean", float: "number"}
 

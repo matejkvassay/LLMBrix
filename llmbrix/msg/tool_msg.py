@@ -1,4 +1,4 @@
-from matejchain.msg import MsgBase
+from llmbrix.msg import MsgBase
 
 
 class ToolMsg(MsgBase):

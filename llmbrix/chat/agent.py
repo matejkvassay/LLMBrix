@@ -1,8 +1,8 @@
-from matejchain.chat.gpt import GPT
-from matejchain.conv_hist import ConvTurnHist
-from matejchain.msg import AssistantMsg, SystemMsg, UserMsg
-from matejchain.tools import ToolBase
-from matejchain.tools.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
+from llmbrix.chat.gpt import GPT
+from llmbrix.conv_hist import ConvTurnHist
+from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
+from llmbrix.tools import ToolBase
+from llmbrix.tools.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
 
 
 class Agent:

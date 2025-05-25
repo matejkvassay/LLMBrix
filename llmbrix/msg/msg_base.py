@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from matejchain.base.api_compatible_base import ApiCompatibleBase
+from llmbrix.base.api_compatible_base import ApiCompatibleBase
 
 
 class MsgBase(BaseModel, ApiCompatibleBase):

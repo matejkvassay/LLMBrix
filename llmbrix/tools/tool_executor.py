@@ -5,8 +5,8 @@ from json import JSONDecodeError
 from jinja2 import Template
 from openai.types.chat import ChatCompletionMessageToolCall
 
-from matejchain.msg import ToolMsg
-from matejchain.tools import ToolBase
+from llmbrix.msg import ToolMsg
+from llmbrix.tools import ToolBase
 
 logger = logging.getLogger(__name__)
 

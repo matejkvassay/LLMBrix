@@ -2,8 +2,8 @@ import logging
 
 from openai import OpenAI
 
-from matejchain.msg import AssistantMsg, MsgBase
-from matejchain.tools import ToolBase
+from llmbrix.msg import AssistantMsg, MsgBase
+from llmbrix.tools import ToolBase
 
 logger = logging.getLogger(__name__)
 client = OpenAI()

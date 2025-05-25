@@ -1,5 +1,5 @@
-from matejchain.conv_hist import ConvTurnHist
-from matejchain.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
+from llmbrix.conv_hist import ConvTurnHist
+from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
 
 
 def test_conv_turn_hist():

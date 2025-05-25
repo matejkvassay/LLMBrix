@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from functools import lru_cache
 
-from matejchain.base.api_compatible_base import ApiCompatibleBase
-from matejchain.tools.tool_param import ToolParam
+from llmbrix.base.api_compatible_base import ApiCompatibleBase
+from llmbrix.tools.tool_param import ToolParam
 
 
 class ToolBase(ApiCompatibleBase):
