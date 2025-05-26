@@ -1,7 +1,7 @@
 import pytest
 
 from llmbrix.chat_history import ChatHistory
-from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
+from llmbrix.msg import AssistantMsg, SystemMsg, ToolOutputMsg, UserMsg
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def assistant_msg():
 
 @pytest.fixture
 def tool_msg():
-    return ToolMsg(role="tool", content="Tool output", tool_call_id="xyz")
+    return ToolOutputMsg(role="tool", content="Tool output", tool_call_id="xyz")
 
 
 @pytest.fixture

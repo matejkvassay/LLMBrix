@@ -1,6 +1,4 @@
-from typing import List, Optional
-
-from openai.types.responses import ResponseFunctionToolCall
+from typing import Optional
 
 from llmbrix.msg.msg import Msg
 
@@ -8,11 +6,3 @@ from llmbrix.msg.msg import Msg
 class AssistantMsg(Msg):
     content: Optional[str] = None
     role: str = "assistant"
-    tool_calls: Optional[List[ResponseFunctionToolCall]] = None
-
-    def __str__(self):
-        basic_info = super().__str__()
-        tool_names = ""
-        if self.tool_calls:
-            tool_names = ", ".join(t.function.name for t in self.tool_calls)
-        return f"{basic_info} | tool calls: [{tool_names}]"

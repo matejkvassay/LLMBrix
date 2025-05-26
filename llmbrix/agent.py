@@ -28,13 +28,16 @@ class Agent:
 
         for _ in range(self.max_tool_call_iter):
             print([x.model_dump() for x in self.chat_history.get()])
-            assistant_msg = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
+            assistant_msg, tool_request_msgs = self.gpt.generate(
+                messages=self.chat_history.get(), tools=self.tools
+            )
             self.chat_history.add(assistant_msg)
-            if not assistant_msg.tool_calls:
+            if not tool_request_msgs:
                 return assistant_msg
-            tool_msgs = self.tool_executor(assistant_msg.tool_calls)
-            self.chat_history.add_many(tool_msgs)
+            self.chat_history.add_many(tool_request_msgs)
+            tool_output_msgs = self.tool_executor(assistant_msg.tool_calls)
+            self.chat_history.add_many(tool_output_msgs)
 
-        assistant_msg = self.gpt.generate(messages=self.chat_history.get(), tools=None)
+        assistant_msg, _ = self.gpt.generate(messages=self.chat_history.get(), tools=None)
         self.chat_history.add(assistant_msg)
         return assistant_msg

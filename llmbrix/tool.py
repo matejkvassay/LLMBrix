@@ -29,7 +29,8 @@ class Tool(ABC):
             func_spec["parameters"] = {
                 "type": "object",
                 "properties": props,
-                "required": [x.name for x in self.params if x.required is True],
+                "required": [p.name for p in self.params],
+                "additionalProperties": False,
             }
             func_spec["strict"] = True
         return {"type": "function", "function": func_spec}

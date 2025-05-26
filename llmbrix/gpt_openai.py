@@ -2,7 +2,7 @@ from openai import OpenAI
 from openai.types.responses import ResponseFunctionToolCall
 from pydantic import BaseModel
 
-from llmbrix.msg import AssistantMsg, Msg
+from llmbrix.msg import AssistantMsg, Msg, ToolRequestMsg
 from llmbrix.tool import Tool
 
 client = OpenAI()
@@ -13,7 +13,9 @@ class GptOpenAI:
         self.model = model
         self.client = OpenAI()
 
-    def generate(self, messages: list[Msg], tools: list[Tool] = None) -> AssistantMsg:
+    def generate(
+        self, messages: list[Msg], tools: list[Tool] = None
+    ) -> tuple[AssistantMsg, list[ToolRequestMsg]]:
         messages = [m.to_openai() for m in messages]
         if tools is not None:
             tools = [t.openai_schema for t in tools]
@@ -26,13 +28,16 @@ class GptOpenAI:
                 f"code={response.error}, "
                 f'msg="{response.error.message}"'
             )
-        tool_calls = [t for t in response.output if isinstance(t, ResponseFunctionToolCall)]
-        tool_calls = tool_calls if tool_calls else None
-        return AssistantMsg(content=response.output_text, tool_calls=tool_calls)
+        tool_call_requests = [
+            ToolRequestMsg.from_openai(t)
+            for t in response.output
+            if isinstance(t, ResponseFunctionToolCall)
+        ]
+        return AssistantMsg(content=response.output_text), tool_call_requests
 
     def generate_structured(
         self, messages: list[Msg], output_format: BaseModel
-    ) -> AssistantMsg | None:
+    ) -> BaseModel | None:
         messages = [m.to_openai() for m in messages]
         response = self.client.responses.parse(
             input=messages, model=self.model, text_format=output_format

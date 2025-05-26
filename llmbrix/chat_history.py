@@ -1,6 +1,6 @@
 from collections import deque
 
-from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
+from llmbrix.msg import AssistantMsg, SystemMsg, ToolOutputMsg, ToolRequestMsg, UserMsg
 from llmbrix.msg.msg import Msg
 
 
@@ -15,7 +15,7 @@ class ChatHistory:
             self.system_msg = msg
         elif isinstance(msg, UserMsg):
             self.conv_turns.append(_ConversationTurn(user_msg=msg))
-        elif isinstance(msg, (AssistantMsg, ToolMsg)):
+        elif isinstance(msg, (AssistantMsg, ToolRequestMsg, ToolOutputMsg)):
             if len(self.conv_turns) == 0:
                 raise ValueError("Conversation must start with a UserMsg.")
             self.conv_turns[-1].add_llm_response(msg)
@@ -42,9 +42,9 @@ class ChatHistory:
 class _ConversationTurn:
     def __init__(self, user_msg: UserMsg):
         self.user_msg = user_msg
-        self.llm_responses: list[AssistantMsg | ToolMsg] = []
+        self.llm_responses: list[AssistantMsg | ToolRequestMsg | ToolOutputMsg] = []
 
-    def add_llm_response(self, msg: AssistantMsg | ToolMsg):
+    def add_llm_response(self, msg: AssistantMsg | ToolRequestMsg | ToolOutputMsg):
         self.llm_responses.append(msg)
 
     def flatten(self):

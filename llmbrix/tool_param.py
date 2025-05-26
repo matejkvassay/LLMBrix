@@ -2,13 +2,12 @@ PARAM_TYPE_MAP = {str: "string", int: "integer", bool: "boolean", float: "number
 
 
 class ToolParam:
-    def __init__(self, name, desc, dtype, required=True, enum=None):
+    def __init__(self, name, desc, dtype, enum=None):
         if dtype not in PARAM_TYPE_MAP:
             raise ValueError(f"Tool parameter type has to be one of: {PARAM_TYPE_MAP.keys()}")
         self.name = name
         self.desc = desc
         self.dtype = PARAM_TYPE_MAP[dtype]
-        self.required = required
         self.enum = enum
 
     @property
