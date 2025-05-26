@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from llmbrix.base import ToolBase
+from llmbrix.tool import Tool
 
 
-class GetDatetime(ToolBase):
+class GetDatetime(Tool):
     def __init__(self):
         super().__init__(
             name="get_current_datetime",

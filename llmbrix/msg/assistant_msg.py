@@ -11,8 +11,8 @@ class AssistantMsg(Msg):
     tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None
 
     def __str__(self):
-        if self.tool_calls is None:
-            return super().__str__()
-        tool_names = ", ".join([t.function.name for t in self.tool_calls])
-        content = self.content if self.content is not None else "<no content>"
-        return f'{self.role.upper()}: "{content}" : tool_calls=[{tool_names}]'
+        basic_info = super().__str__()
+        tool_names = ""
+        if self.tool_calls:
+            tool_names = ", ".join(t.function.name for t in self.tool_calls)
+        return f"{basic_info} | tool calls: [{tool_names}]"

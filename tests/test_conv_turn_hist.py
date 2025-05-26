@@ -1,4 +1,4 @@
-from llmbrix.conv_hist import ConvTurnHist
+from llmbrix.chat_hist import ConvTurnHist
 from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
 
 

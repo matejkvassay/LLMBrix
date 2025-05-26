@@ -7,5 +7,5 @@ class ToolMsg(Msg):
     role: str = "tool"
 
     def __str__(self):
-        content = self.content if self.content is not None else "<no tool output>"
-        return f'{self.role.upper()}:{self.tool_call_id}: "{content}"'
+        basic_info = super().__str__()
+        return f"{basic_info} | tool call ID: {self.tool_call_id}"

@@ -1,14 +1,14 @@
-from llmbrix.chat.gpt_openai import LLM
-from llmbrix.conv_hist import ConvTurnHist
+from llmbrix.chat_history import ConvTurnHist
+from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
-from llmbrix.tools import Tool
-from llmbrix.tools.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
+from llmbrix.tool import Tool
+from llmbrix.tool.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
 
 
-class Agent:
+class Chatbot:
     def __init__(
         self,
-        gpt: LLM,
+        gpt: GptOpenAI,
         system_msg: SystemMsg,
         tools: list[Tool] | None = None,
         conv_hist_limit=5,

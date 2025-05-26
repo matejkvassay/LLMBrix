@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from llmbrix.tools.tool_param import ToolParam
+from llmbrix.tool.tool_param import ToolParam
 
 
 class Tool(ABC):
