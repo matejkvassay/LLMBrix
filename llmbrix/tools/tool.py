@@ -1,11 +1,9 @@
-from abc import abstractmethod
-from functools import lru_cache
+from abc import ABC, abstractmethod
 
-from llmbrix.base.api_compatible_base import ApiCompatibleBase
 from llmbrix.tools.tool_param import ToolParam
 
 
-class ToolBase(ApiCompatibleBase):
+class Tool(ABC):
     def __init__(self, name: str, desc: str, params: tuple[ToolParam, ...] | None = None):
         self.name = name
         self.desc = desc
@@ -18,15 +16,16 @@ class ToolBase(ApiCompatibleBase):
     def exec(self, **kwargs):
         pass
 
-    @lru_cache(maxsize=1)
-    def api_dict(self):
+    @property
+    def openai_schema(self) -> dict:
         func_spec = {
             "name": self.name,
             "description": self.desc,
         }
         if self.params is not None:
             props = {}
-            [props.update(par.api_dict()) for par in self.params]
+            for param in self.params:
+                props.update(param.openai_schema)
             func_spec["parameters"] = {
                 "type": "object",
                 "properties": props,

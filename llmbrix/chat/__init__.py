@@ -1,2 +1,2 @@
 from .agent import Agent
-from .gpt import GPT
+from .gpt_openai import GptOpenAI

@@ -1,19 +1,14 @@
 from typing import List, Optional
 
 from openai.types.chat import ChatCompletionMessageToolCall
-from openai.types.chat.chat_completion import Choice
 
-from llmbrix.base.msg_base import MsgBase
+from llmbrix.msg.msg import Msg
 
 
-class AssistantMsg(MsgBase):
+class AssistantMsg(Msg):
     content: Optional[str] = None
     role: str = "assistant"
     tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None
-
-    @classmethod
-    def from_choice(cls, choice: Choice):
-        return cls(content=choice.message.content, tool_calls=choice.message.tool_calls)
 
     def __str__(self):
         if self.tool_calls is None:

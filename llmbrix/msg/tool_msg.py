@@ -1,7 +1,7 @@
-from llmbrix.base.msg_base import MsgBase
+from llmbrix.msg.msg import Msg
 
 
-class ToolMsg(MsgBase):
+class ToolMsg(Msg):
     content: str
     tool_call_id: str
     role: str = "tool"

@@ -6,7 +6,7 @@ from jinja2 import Template
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from llmbrix.msg import ToolMsg
-from llmbrix.tools import ToolBase
+from llmbrix.tools import Tool
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +14,7 @@ DEFAULT_TOOL_ERROR_TEMPLATE = Template("Error during tool execution: {{error}}")
 
 
 class ToolExecutor:
-    def __init__(
-        self, tools: list[ToolBase], error_template: Template = DEFAULT_TOOL_ERROR_TEMPLATE
-    ):
+    def __init__(self, tools: list[Tool], error_template: Template = DEFAULT_TOOL_ERROR_TEMPLATE):
         """
         :param tools: list of potential tools to execute
         :param error_template: Jinja2 template, optionally can to contain {{error}} var.

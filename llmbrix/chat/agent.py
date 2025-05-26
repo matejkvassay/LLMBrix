@@ -1,16 +1,16 @@
-from llmbrix.chat.gpt import GPT
+from llmbrix.chat.gpt_openai import LLM
 from llmbrix.conv_hist import ConvTurnHist
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
-from llmbrix.tools import ToolBase
+from llmbrix.tools import Tool
 from llmbrix.tools.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
 
 
 class Agent:
     def __init__(
         self,
-        gpt: GPT,
+        gpt: LLM,
         system_msg: SystemMsg,
-        tools: list[ToolBase] | None = None,
+        tools: list[Tool] | None = None,
         conv_hist_limit=5,
         tool_call_iter_limit=1,
         tool_err_template=DEFAULT_TOOL_ERROR_TEMPLATE,

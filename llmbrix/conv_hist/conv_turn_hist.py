@@ -1,5 +1,5 @@
-from llmbrix.base.msg_base import MsgBase
 from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
+from llmbrix.msg.msg import Msg
 
 
 class ConvTurn:
@@ -23,7 +23,7 @@ class ConvTurnHist:
         self.max_turns = max_turns
         self.conv_turns: list[ConvTurn] = []
 
-    def add(self, msg: MsgBase):
+    def add(self, msg: Msg):
         if isinstance(msg, SystemMsg):
             raise ValueError("System message has to be set in constructor of ConversationHistory.")
         elif isinstance(msg, UserMsg):
@@ -41,7 +41,7 @@ class ConvTurnHist:
             )
         self._trim()
 
-    def add_many(self, msgs: list[MsgBase]):
+    def add_many(self, msgs: list[Msg]):
         for m in msgs:
             self.add(m)
 

@@ -1,6 +1,6 @@
-from llmbrix.base.msg_base import MsgBase
+from llmbrix.msg.msg import Msg
 
 
-class SystemMsg(MsgBase):
+class SystemMsg(Msg):
     content: str
     role: str = "system"
