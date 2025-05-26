@@ -1,7 +1,7 @@
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
-from llmbrix.tool_executor import DEFAULT_TOOL_ERROR_TEMPLATE, ToolExecutor
+from llmbrix.tool_executor import ToolExecutor
 from llmbrix.tools import Tool
 
 
@@ -12,21 +12,21 @@ class Agent:
         system_msg: SystemMsg,
         chat_history: ChatHistory,
         tools: list[Tool] | None = None,
-        tool_call_iter_limit=1,
-        tool_err_template=DEFAULT_TOOL_ERROR_TEMPLATE,
+        max_tool_call_iter=1,
+        tool_executor: ToolExecutor = None,
     ):
-        assert tool_call_iter_limit > 0
+        assert max_tool_call_iter > 0
         self.gpt = gpt
-        self.tool_executor = ToolExecutor(tools=tools, error_template=tool_err_template)
+        self.tool_executor = ToolExecutor(tools=tools) if tool_executor is None else tool_executor
         self.chat_history = chat_history
         self.chat_history.add(system_msg)
         self.tools = tools
-        self.tool_call_iter_limit = tool_call_iter_limit
+        self.max_tool_call_iter = max_tool_call_iter
 
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
         self.chat_history.add(user_msg)
 
-        for _ in range(self.tool_call_iter_limit):
+        for _ in range(self.max_tool_call_iter):
             assistant_msg = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
             self.chat_history.add(assistant_msg)
             if not assistant_msg.tool_calls:
