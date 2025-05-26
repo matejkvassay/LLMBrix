@@ -8,8 +8,8 @@ from llmbrix.tool import Tool
 client = OpenAI()
 
 
-class GptResponse:
-    msg: AssistantMsg
+class GptResponse(BaseModel):
+    message: AssistantMsg
     tool_calls: list[ToolRequestMsg]
 
 
@@ -37,7 +37,7 @@ class GptOpenAI:
             if isinstance(t, ResponseFunctionToolCall)
         ]
         return GptResponse(
-            msg=AssistantMsg(content=response.output_text), tool_calls=tool_call_requests
+            message=AssistantMsg(content=response.output_text), tool_calls=tool_call_requests
         )
 
     def generate_structured(
