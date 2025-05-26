@@ -14,7 +14,8 @@ requires-python = ">=3.11"
 dependencies = [
     "jinja2",
     "openai",
-    "pytest"
+    "pytest",
+    "pydantic"
 ]
 
 [project.optional-dependencies]
