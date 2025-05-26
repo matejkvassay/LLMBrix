@@ -16,7 +16,7 @@ def assistant_msg():
 
 @pytest.fixture
 def tool_msg():
-    return ToolOutputMsg(role="tool", content="Tool output", tool_call_id="xyz")
+    return ToolOutputMsg(output="Tool output", call_id="xyz")
 
 
 @pytest.fixture
