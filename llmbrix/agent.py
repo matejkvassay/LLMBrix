@@ -13,14 +13,14 @@ class Agent:
         chat_history: ChatHistory,
         tools: list[Tool] | None = None,
         max_tool_call_iter=1,
-        tool_executor: ToolExecutor = None,
     ):
         assert max_tool_call_iter > 0
         self.gpt = gpt
-        self.tool_executor = ToolExecutor(tools=tools) if tool_executor is None else tool_executor
         self.chat_history = chat_history
         self.chat_history.add(system_msg)
         self.tools = tools
+        if tools:
+            self.tool_executor = ToolExecutor(tools=tools)
         self.max_tool_call_iter = max_tool_call_iter
 
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
