@@ -11,8 +11,8 @@ client = OpenAI()
 
 
 class GptOpenAI:
-    def __init__(self, model_name: str):
-        self.model = model_name
+    def __init__(self, model: str):
+        self.model = model
         self.client = OpenAI()
 
     def generate(self, messages: list[Msg], tools: list[Tool] = None) -> AssistantMsg:
