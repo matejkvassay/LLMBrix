@@ -1,4 +1,5 @@
-from llmbrix.msg import AssistantMsg, MsgBase, SystemMsg, ToolMsg, UserMsg
+from llmbrix.msg import AssistantMsg, SystemMsg, ToolMsg, UserMsg
+from llmbrix.base.msg_base import MsgBase
 
 
 class ConvTurn:

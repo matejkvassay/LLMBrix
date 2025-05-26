@@ -1,4 +1,4 @@
-from llmbrix.msg import MsgBase
+from llmbrix.base.msg_base import MsgBase
 
 
 class SystemMsg(MsgBase):

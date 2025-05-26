@@ -3,7 +3,7 @@ from typing import List, Optional
 from openai.types.chat import ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion import Choice
 
-from llmbrix.msg import MsgBase
+from llmbrix.base.msg_base import MsgBase
 
 
 class AssistantMsg(MsgBase):
