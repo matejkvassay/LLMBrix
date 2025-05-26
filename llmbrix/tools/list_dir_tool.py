@@ -11,10 +11,10 @@ class ListDirTool(Tool):
         ]
         super().__init__(
             name="list_files_in_directory",
-            desc="Return list of file names. Lists only files, not subdirs.",
+            desc="Return list of file names. Lists both files and sub-dirs.",
             params=params,
         )
 
     @staticmethod
     def exec(dir_path: str):
-        return [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+        return os.listdir(dir_path)

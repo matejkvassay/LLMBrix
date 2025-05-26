@@ -4,7 +4,9 @@ from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import SystemMsg, UserMsg
 from llmbrix.tools import GetDatetimeTool, ListDirTool
 
-SYSTEM_MSG = "Be super brief."
+SYSTEM_MSG = (
+    "Be super brief. Use provided tools to either get current datetime or list files in dir."
+)
 HIST_LIMIT = 5
 MODEL = "gpt-4o-mini"
 
