@@ -4,6 +4,7 @@
 
 - in early development, not a working version yet
 - low abstraction LLM framework
+- simple toolkit to create AI apps
 
 # Development notes
 

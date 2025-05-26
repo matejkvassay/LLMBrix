@@ -1,11 +1,11 @@
 # [v0.0.1]
 
-## [2025/05/26]
+# [2025/05/26]
 
-- rename to LLMBrix
-- import fixes
-- doc updates
-- changelog added
-- develop branch removed (not needed for early dev)
-- Python version requirement increased to 3.11
-- Pydantic added to deps
+- transformation to responses API format
+- new message classes
+- improved history trimming performance with dequeue
+- agent class reimplemented
+- gpt class implemented
+- package structure changed
+- basic usage examples added
