@@ -4,7 +4,7 @@ from llmbrix.tool_param import ToolParam
 
 
 class Tool(ABC):
-    def __init__(self, name: str, desc: str, params: tuple[ToolParam, ...] | None = None):
+    def __init__(self, name: str, desc: str, params: list[ToolParam] | None = None):
         self.name = name
         self.desc = desc
         self.params = params
@@ -18,10 +18,7 @@ class Tool(ABC):
 
     @property
     def openai_schema(self) -> dict:
-        func_spec = {
-            "name": self.name,
-            "description": self.desc,
-        }
+        func_spec = {"type": "function", "name": self.name, "description": self.desc}
         if self.params is not None:
             props = {}
             for param in self.params:
@@ -33,4 +30,4 @@ class Tool(ABC):
                 "additionalProperties": False,
             }
             func_spec["strict"] = True
-        return {"type": "function", "function": func_spec}
+        return func_spec

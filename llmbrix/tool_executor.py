@@ -32,11 +32,11 @@ class ToolExecutor:
                 parsed_kwargs = json.loads(kwargs)
             except JSONDecodeError:
                 raise ValueError(f"JSONDecodeError, could not parse JSON tools arguments {kwargs}.")
-            content = tool(**parsed_kwargs)
+            output = tool(**parsed_kwargs)
         except Exception as ex:
-            content = self.error_template.render(error=str(ex))
+            output = self.error_template.render(error=str(ex))
         return ToolOutputMsg(
-            content=content,
+            output=output,
             call_id=tool_call.call_id,
             meta={"tool_name": name, "tool_kwargs": kwargs},
         )
