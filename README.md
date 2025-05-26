@@ -1,3 +1,10 @@
+![logo](./img/logo.png)
+
+# About LLMBrix
+
+- in early development, not a working version yet
+- low abstraction LLM framework
+
 ## Dev
 
 ### Install package
