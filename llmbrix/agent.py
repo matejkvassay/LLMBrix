@@ -27,6 +27,7 @@ class Agent:
         self.chat_history.add(user_msg)
 
         for _ in range(self.max_tool_call_iter):
+            print([x.model_dump() for x in self.chat_history.get()])
             assistant_msg = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
             self.chat_history.add(assistant_msg)
             if not assistant_msg.tool_calls:
