@@ -17,7 +17,7 @@ class ConvTurn:
         return res
 
 
-class ConvTurnHist:
+class ChatHistory:
     def __init__(self, system_msg: SystemMsg, max_turns: int = 5):
         self.system_msg = system_msg
         self.max_turns = max_turns
@@ -32,7 +32,7 @@ class ConvTurnHist:
             if len(self) == 0:
                 raise ValueError(
                     "At least 1 user message has to be added first"
-                    " before follow-up assistant/tool messages."
+                    " before follow-up assistant/tools messages."
                 )
             self.conv_turns[-1].add_llm_response(msg)
         else:

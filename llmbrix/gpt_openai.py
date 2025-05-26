@@ -4,7 +4,7 @@ from openai import OpenAI
 from openai.types.chat.chat_completion import Choice
 
 from llmbrix.msg import AssistantMsg, Msg
-from llmbrix.tool import Tool
+from llmbrix.tools import Tool
 
 logger = logging.getLogger(__name__)
 client = OpenAI()
