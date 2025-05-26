@@ -31,4 +31,5 @@ class Tool(ABC):
                 "properties": props,
                 "required": [x.name for x in self.params if x.required is True],
             }
+            func_spec["strict"] = True
         return {"type": "function", "function": func_spec}

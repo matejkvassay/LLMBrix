@@ -1,12 +1,9 @@
-import logging
-
 from openai import OpenAI
-from openai.types.chat.chat_completion import Choice
+from openai.types.responses import ResponseFunctionToolCall
 
 from llmbrix.msg import AssistantMsg, Msg
 from llmbrix.tool import Tool
 
-logger = logging.getLogger(__name__)
 client = OpenAI()
 
 
@@ -19,11 +16,32 @@ class GptOpenAI:
         messages = [m.to_openai() for m in messages]
         if tools is not None:
             tools = [t.openai_schema for t in tools]
-        completion = self.client.chat.completions.create(
-            messages=messages, model=self.model, tools=tools
-        )
-        return self._choice_to_msg(completion.choices[0])
+        else:
+            tools = []
+        response = self.client.responses.create(input=messages, model=self.model, tools=tools)
+        if response.error:
+            raise RuntimeError(
+                f"Error during OpenAI API cal: "
+                f"code={response.error}, "
+                f'msg="{response.error.message}"'
+            )
+        tool_calls = [t for t in response.output if isinstance(t, ResponseFunctionToolCall)]
+        tool_calls = tool_calls if tool_calls else None
+        return AssistantMsg(content=response.output_text, tool_calls=tool_calls)
 
-    @staticmethod
-    def _choice_to_msg(choice: Choice):
-        return AssistantMsg(content=choice.message.content, tool_calls=choice.message.tool_calls)
+    # def generate_structured(self, messages: list[Msg], output_format: Type[BaseModel],
+    #                         tools: list[Tool] = None) -> BaseModel:
+    #     messages = [m.to_openai() for m in messages]
+    #     if tools is not None:
+    #         tools = [t.openai_schema for t in tools]
+    #     else:
+    #         tools = []
+    #
+    #     response = self.client.responses.parse(
+    #         input=messages,
+    #         model=self.model,
+    #         tools=tools,
+    #         text_format=output_format
+    #     )
+    #
+    #     return response.output_parsed

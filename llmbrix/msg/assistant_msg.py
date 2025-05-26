@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from openai.types.chat import ChatCompletionMessageToolCall
+from openai.types.responses import ResponseFunctionToolCall
 
 from llmbrix.msg.msg import Msg
 
@@ -8,7 +8,7 @@ from llmbrix.msg.msg import Msg
 class AssistantMsg(Msg):
     content: Optional[str] = None
     role: str = "assistant"
-    tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None
+    tool_calls: Optional[List[ResponseFunctionToolCall]] = None
 
     def __str__(self):
         basic_info = super().__str__()
