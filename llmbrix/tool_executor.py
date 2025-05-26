@@ -1,5 +1,4 @@
 import json
-import logging
 from json import JSONDecodeError
 
 from jinja2 import Template
@@ -7,8 +6,6 @@ from openai.types.chat import ChatCompletionMessageToolCall
 
 from llmbrix.msg import ToolMsg
 from llmbrix.tools import Tool
-
-logger = logging.getLogger(__name__)
 
 DEFAULT_TOOL_ERROR_TEMPLATE = Template("Error during tool execution: {{error}}")
 
@@ -34,20 +31,20 @@ class ToolExecutor:
     def _execute_tool_call(self, tool_call: ChatCompletionMessageToolCall) -> ToolMsg:
         name = tool_call.function.name
         kwargs = tool_call.function.arguments
+        assert isinstance(kwargs, str)
         try:
             tool = self.tool_idx.get(name, None)
             if tool is None:
-                logger.exception(
-                    f"Tool call execution failed for req {tool_call.dict()}, tools not found"
-                )
                 raise KeyError(f'Tool with name "{name}" not found.')
             try:
-                kwargs = json.loads(kwargs)
+                parsed_kwargs = json.loads(kwargs)
             except JSONDecodeError:
                 raise ValueError(f"JSONDecodeError, could not parse JSON tools arguments {kwargs}.")
-            tool_output = tool(**kwargs)
-            return ToolMsg(content=tool_output, tool_call_id=tool_call.id)
+            content = tool(**parsed_kwargs)
         except Exception as ex:
-            logger.exception(f"Tool call execution failed for req {tool_call.dict()}, error: {ex}")
             content = self.error_template.render(error=str(ex))
-            return ToolMsg(content=content, tool_call_id=tool_call.id)
+        return ToolMsg(
+            content=content,
+            tool_call_id=tool_call.id,
+            meta={"tool_name": name, "tool_kwargs": kwargs},
+        )
