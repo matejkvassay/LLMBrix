@@ -5,7 +5,7 @@
 - in early development, not a working version yet
 - low abstraction LLM framework
 
-## Dev
+# Development notes
 
 ### Install package
 
