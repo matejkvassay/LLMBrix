@@ -3,18 +3,19 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "matejchain"
+name = "llmbrix"
 authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
-description = "Chatbot agent framework."
+description = "Low abstraction LLM framework."
 version = "0.0.1"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 dependencies = [
     "jinja2",
     "openai",
-    "pytest"
+    "pytest",
+    "pydantic"
 ]
 
 [project.optional-dependencies]

@@ -1,7 +1,11 @@
+from functools import lru_cache
+
+from llmbrix.base.api_compatible_base import ApiCompatibleBase
+
 PARAM_TYPE_MAP = {str: "string", int: "integer", bool: "boolean", float: "number"}
 
 
-class ToolParam:
+class ToolParam(ApiCompatibleBase):
     def __init__(self, name, desc, dtype, required=True, enum=None):
         if dtype not in PARAM_TYPE_MAP:
             raise ValueError(f"Tool parameter type has to be one of: {PARAM_TYPE_MAP.keys()}")
@@ -10,12 +14,9 @@ class ToolParam:
         self.dtype = PARAM_TYPE_MAP[dtype]
         self.required = required
         self.enum = enum
-        self.openai_fmt = self._parse_to_openai_fmt()
 
-    def to_openai(self):
-        return self.openai_fmt
-
-    def _parse_to_openai_fmt(self):
+    @lru_cache(maxsize=1)
+    def api_dict(self) -> dict:
         properties_dict = {
             self.name: {
                 "type": self.dtype,
