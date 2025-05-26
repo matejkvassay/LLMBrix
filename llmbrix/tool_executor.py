@@ -5,7 +5,7 @@ from jinja2 import Template
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from llmbrix.msg import ToolMsg
-from llmbrix.tools import Tool
+from llmbrix.tool import Tool
 
 DEFAULT_TOOL_ERROR_TEMPLATE = Template("Error during tool execution: {{error}}")
 

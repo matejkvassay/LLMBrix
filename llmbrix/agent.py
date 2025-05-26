@@ -1,8 +1,8 @@
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
+from llmbrix.tool import Tool
 from llmbrix.tool_executor import ToolExecutor
-from llmbrix.tools import Tool
 
 
 class Agent:

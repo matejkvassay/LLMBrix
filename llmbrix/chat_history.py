@@ -5,16 +5,14 @@ from llmbrix.msg.msg import Msg
 
 
 class ChatHistory:
-    def __init__(self, system_msg: SystemMsg, max_turns: int = 5):
-        self.system_msg = system_msg
+    def __init__(self, max_turns: int = 5):
+        self.system_msg = None
         self.max_turns = max_turns
         self.conv_turns: deque[_ConversationTurn] = deque(maxlen=max_turns)
 
     def add(self, msg: Msg):
         if isinstance(msg, SystemMsg):
-            raise ValueError(
-                "You cannot add system message. Set it via constructor of ChatHistory."
-            )
+            self.system_msg = msg
         elif isinstance(msg, UserMsg):
             self.conv_turns.append(_ConversationTurn(user_msg=msg))
         elif isinstance(msg, (AssistantMsg, ToolMsg)):
@@ -31,8 +29,8 @@ class ChatHistory:
             self.add(m)
 
     def get(self, n=None) -> list[Msg]:
-        messages = [self.system_msg]
-        turns = self.conv_turns[-n:] if n is not None else self.conv_turns
+        messages = [self.system_msg] if self.system_msg else []
+        turns = list(self.conv_turns)[-n:] if n is not None else self.conv_turns
         for turn in turns:
             messages += turn.flatten()
         return messages

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from llmbrix.tools import Tool
+from llmbrix.tool import Tool
 
 
 class GetDatetimeTool(Tool):
