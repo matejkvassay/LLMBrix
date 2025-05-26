@@ -8,14 +8,17 @@ from llmbrix.tool import Tool
 client = OpenAI()
 
 
+class GptResponse:
+    msg: AssistantMsg
+    tool_calls: list[ToolRequestMsg]
+
+
 class GptOpenAI:
     def __init__(self, model: str):
         self.model = model
         self.client = OpenAI()
 
-    def generate(
-        self, messages: list[Msg], tools: list[Tool] = None
-    ) -> tuple[AssistantMsg, list[ToolRequestMsg]]:
+    def generate(self, messages: list[Msg], tools: list[Tool] = None) -> GptResponse:
         messages = [m.to_openai() for m in messages]
         if tools is not None:
             tools = [t.openai_schema for t in tools]
@@ -33,7 +36,9 @@ class GptOpenAI:
             for t in response.output
             if isinstance(t, ResponseFunctionToolCall)
         ]
-        return AssistantMsg(content=response.output_text), tool_call_requests
+        return GptResponse(
+            msg=AssistantMsg(content=response.output_text), tool_calls=tool_call_requests
+        )
 
     def generate_structured(
         self, messages: list[Msg], output_format: BaseModel
