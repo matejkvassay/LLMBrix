@@ -25,3 +25,9 @@ while True:
 
     print(user_msg)
     print(assistant_msg)
+
+print("Final chat history dump:")
+
+for m in chat_history.get():
+    print("\n\n")
+    print(m)
