@@ -9,7 +9,7 @@
 # Install
 
 ```bash
-pip install llmbricks --pre
+pip install llmbrix --pre
 ```
 # Use
 
