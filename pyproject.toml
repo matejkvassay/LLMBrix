@@ -7,23 +7,32 @@ name = "llmbrix"
 authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
-description = "Low abstraction LLM framework."
+description = "Low abstraction agentic LLM framework."
 version = "0.0.1"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "jinja2",
     "openai",
-    "pytest",
     "pydantic"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",  # Consider 4 - Beta or 5 - Production/Stable as it matures
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pre-commit"
+    "pre-commit",
+    "build",
+    "twine"
 ]
 
-
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["llmbrix"]
