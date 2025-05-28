@@ -1,4 +1,7 @@
-# [v0.0.1]
+# [2025/05/28]
+- release scripts added
+- pyproject.toml finalized for release
+- pre-alpha v0.1.0a3 released on test pypi and prod pypi
 
 # [2025/05/26]
 
