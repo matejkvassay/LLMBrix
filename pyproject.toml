@@ -8,7 +8,7 @@ authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
 description = "Low abstraction agentic LLM framework."
-version = "0.1.0a2"
+version = "0.1.0a1"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -26,6 +26,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries"
 ]
 keywords = ["LLM", "agent", "framework", "AI", "chatbot"]
+
+[project.urls]
+"Homepage" = "https://github.com/matejkvassay/LLMBrix"
+"Repository" = "https://github.com/matejkvassay/LLMBrix"
+"Issues" = "https://github.com/matejkvassay/LLMBrix/issues"
+"Documentation" = "https://github.com/matejkvassay/LLMBrix#readme"
 
 [project.optional-dependencies]
 dev = [
