@@ -1,4 +1,4 @@
-![logo](./img/logo.png)
+![logo](https://github.com/matejkvassay/LLMBrix/blob/main/img/logo.png?raw=true)
 
 # About LLMBrix
 
