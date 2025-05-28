@@ -1,10 +1,19 @@
-![logo](./img/logo.png)
+![logo](https://github.com/matejkvassay/LLMBrix/blob/main/img/logo.png?raw=true)
 
 # About LLMBrix
 
-- in early development, not a working version yet
+- in early alpha development do not use productively
 - low abstraction LLM framework
 - simple toolkit to create AI apps
+
+# Install
+
+```bash
+pip install llmbricks --pre
+```
+# Use
+
+See examples in `examples/` dir.
 
 # Development notes
 
@@ -40,4 +49,14 @@ with your API access token (see https://platform.openai.com/docs/quickstart for 
 
 ```bash
 export OPENAI_API_KEY="<YOUR API TOKEN>"
+```
+
+### Other
+
+#### Release test install
+
+```bash
+pip install --index-url https://test.pypi.org/simple/ \
+            --extra-index-url https://pypi.org/simple \
+            llmbrix --pre
 ```
