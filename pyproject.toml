@@ -14,7 +14,8 @@ requires-python = ">=3.11"
 dependencies = [
     "jinja2",
     "openai",
-    "pydantic"
+    "pydantic",
+    "structlog"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
