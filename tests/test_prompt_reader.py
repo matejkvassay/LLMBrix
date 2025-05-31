@@ -26,7 +26,7 @@ def test_read_valid_prompt(tmp_prompt_dir):
     prompt = reader.read("test_prompt")
 
     assert isinstance(prompt, Prompt)
-    assert "Hello! This is a test prompt." in prompt.template
+    assert "Hello! This is a test prompt." in prompt.template_str
 
 
 def test_missing_prompt_file(tmp_prompt_dir):

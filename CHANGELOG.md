@@ -2,6 +2,9 @@
 
 - packaging fix, scripts and tests no longer included
 - release of alpha v5
+- PromptReader for YAML prompts implemented
+- Prompt class with complete and partial rendering implemented
+- custom exception added for incorrect prompt format
 
 # [2025/05/28]
 

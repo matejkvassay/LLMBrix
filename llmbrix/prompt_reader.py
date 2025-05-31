@@ -41,4 +41,4 @@ class PromptReader:
             data = yaml.safe_load(f)
         if "text" not in data:
             raise ValueError('Prompt YAML must contain "text" field.')
-        return Prompt(template=data["text"])
+        return Prompt(template_str=data["text"])
