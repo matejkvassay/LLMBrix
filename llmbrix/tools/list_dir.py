@@ -29,6 +29,6 @@ class ListDir(Tool):
         List files in given dir.
 
         :param dir_path: str path to dir to list files in
-        :return: ToolOutput containing str of list of file names as content.
+        :return: ToolOutput containing str of sorted list of file names as content.
         """
-        return ToolOutput(content=str(os.listdir(dir_path)), meta={"dir_path": dir_path})
+        return ToolOutput(content=str(sorted(os.listdir(dir_path))), meta={"dir_path": dir_path})

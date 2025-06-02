@@ -12,15 +12,15 @@ def test_list_dir_with_files():
         for name in filenames:
             open(os.path.join(tmpdir, name), "w").close()
         tool = ListDir()
-        result = tool.exec(tmpdir)
-        assert sorted(result) == sorted(filenames)
+        result = tool.exec(tmpdir).content
+        assert result == str(sorted(filenames))
 
 
 def test_list_dir_empty_directory():
     with tempfile.TemporaryDirectory() as tmpdir:
         tool = ListDir()
-        result = tool.exec(tmpdir)
-        assert result == []
+        result = tool.exec(tmpdir).content
+        assert result == str([])
 
 
 def test_list_dir_nonexistent_directory():

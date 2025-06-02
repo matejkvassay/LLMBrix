@@ -7,13 +7,13 @@ from llmbrix.tools import AboutMe
 
 def test_about_me_with_string():
     tool = AboutMe(info="I am a helpful chatbot.")
-    assert tool.exec() == "I am a helpful chatbot."
+    assert tool.exec().content == "I am a helpful chatbot."
 
 
 def test_about_me_with_prompt():
     info = Prompt("I'm your assistant, {{chatbot_name}}.")
     tool = AboutMe(info=info, var_prep_func=lambda: {"chatbot_name": "Kevin"})
-    assert tool.exec() == "I'm your assistant, Kevin."
+    assert tool.exec().content == "I'm your assistant, Kevin."
 
 
 def test_about_me_missing_var_fill_func():
