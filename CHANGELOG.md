@@ -1,3 +1,8 @@
+# [2025/06/2]
+- tool parameters made modular
+- new "About Me" tool for chatbots
+- new chatbot example demonstrating prompt reading and rendering
+-
 # [2025/05/31]
 
 - packaging fix, scripts and tests no longer included
