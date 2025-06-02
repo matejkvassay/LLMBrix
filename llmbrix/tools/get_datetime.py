@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from llmbrix.tool import Tool
+from llmbrix.tool_output import ToolOutput
 
 DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 NAME = "get_current_datetime"
@@ -25,10 +26,10 @@ class GetDatetime(Tool):
         self.datetime_fmt = datetime_fmt
         super().__init__(name=tool_name, desc=tool_desc)
 
-    def exec(self) -> str:
+    def exec(self) -> ToolOutput:
         """
         Get current datetime in str format.
 
-        :return: str
+        :return: ToolOutput object with str datetime as content.
         """
-        return datetime.now().strftime(self.datetime_fmt)
+        return ToolOutput(content=datetime.now().strftime(self.datetime_fmt), meta={"datetime_fmt": self.datetime_fmt})

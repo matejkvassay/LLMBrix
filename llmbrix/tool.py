@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from llmbrix.tool_output import ToolOutput
 from llmbrix.tool_param import ToolParam
 
 
@@ -13,7 +14,12 @@ class Tool(ABC):
         return str(self.exec(**kwargs))
 
     @abstractmethod
-    def exec(self, **kwargs):
+    def exec(self, **kwargs) -> ToolOutput:
+        """
+        Exec function will be called to execute tool.
+        It can be static or not, it can optionally contain arguments that will be used as kwargs.
+        It has to return ToolOutput.
+        """
         pass
 
     @property

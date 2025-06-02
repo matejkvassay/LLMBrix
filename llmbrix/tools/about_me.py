@@ -2,6 +2,7 @@ from typing import Callable
 
 from llmbrix.prompt import Prompt
 from llmbrix.tool import Tool
+from llmbrix.tool_output import ToolOutput
 
 NAME = "get_info_about_me"
 DESC = "Get information about this chatbot."
@@ -34,14 +35,17 @@ class AboutMe(Tool):
 
         super().__init__(name=tool_name, desc=tool_desc)
 
-    def exec(self) -> str:
+    def exec(self) -> ToolOutput:
         """
         Returns info about the chatbot.
         If "about_me" is str type its returned directly.
         If "about_me" is Prompt type, var_prep_func() is used to build variables dict and Prompt is rendered into str.
 
-        :return: str info about chatbot
+        :return: ToolOutput object containing info as content.
         """
         if isinstance(self.info, str):
-            return self.info
-        return self.info.render(self.var_prep_func())
+            return ToolOutput(content=self.info, meta={"info_type": "str"})
+        vars_ = self.var_prep_func()
+        return ToolOutput(
+            content=self.info.render(vars_), meta={"info_type": "Prompt", "info_prompt": str(self.info), "vars": vars_}
+        )

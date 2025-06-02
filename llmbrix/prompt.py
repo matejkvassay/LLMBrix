@@ -66,6 +66,9 @@ class Prompt:
         new_template_str = self.relaxed_env.from_string(self.template_str).render(**kwargs)
         return Prompt(template_str=new_template_str)
 
+    def __str__(self):
+        return self.template_str
+
 
 class _PreserveUndefined(Undefined):
     """

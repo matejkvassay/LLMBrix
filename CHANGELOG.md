@@ -1,8 +1,11 @@
 # [2025/06/2]
 - tool parameters made modular
+- tools return ToolOutput and include debug metadata if viable
+- tool executor includes stack trace and exception as metadata of tool message
 - new "About Me" tool for chatbots
 - new chatbot example demonstrating prompt reading and rendering
--
+- missing docstrings added
+
 # [2025/05/31]
 
 - packaging fix, scripts and tests no longer included

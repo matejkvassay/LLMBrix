@@ -1,6 +1,7 @@
 import os
 
 from llmbrix.tool import Tool
+from llmbrix.tool_output import ToolOutput
 from llmbrix.tool_param import ToolParam
 
 NAME = "list_files_in_directory"
@@ -23,11 +24,11 @@ class ListDir(Tool):
         super().__init__(name=tool_name, desc=tool_desc, params=[param])
 
     @staticmethod
-    def exec(dir_path: str) -> list[str]:
+    def exec(dir_path: str) -> ToolOutput:
         """
         List files in given dir.
 
         :param dir_path: str path to dir to list files in
-        :return: list of file names
+        :return: ToolOutput containing str of list of file names as content.
         """
-        return os.listdir(dir_path)
+        return ToolOutput(content=str(os.listdir(dir_path)), meta={"dir_path": dir_path})
