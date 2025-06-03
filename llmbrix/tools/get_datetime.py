@@ -10,7 +10,7 @@ DESC = "Get current date and time in format {}."
 
 class GetDatetime(Tool):
     """
-    Returns current datetime in str format.
+    Get current datetime in str format.
     """
 
     def __init__(self, tool_name=NAME, tool_desc=DESC, datetime_fmt=DATETIME_FMT):
