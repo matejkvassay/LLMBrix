@@ -1,7 +1,8 @@
 # [2025/06/03]
-- more docstrings added
-- chat history len and count_conv_turns methods added
--
+- all missing docstrings added
+- chat history method count_conv_turns() added
+- new chatbot example demonstrating prompt reading and rendering
+- fixed bug with ToolExecutor transforming outputs to str
 
 # [2025/06/02]
 
@@ -9,7 +10,6 @@
 - tools return ToolOutput and include debug metadata if viable
 - tool executor includes stack trace and exception as metadata of tool message
 - new "About Me" tool for chatbots
-- new chatbot example demonstrating prompt reading and rendering
 - missing docstrings added
 
 # [2025/05/31]

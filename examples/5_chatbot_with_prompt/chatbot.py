@@ -1,20 +1,42 @@
+from datetime import datetime
+from time import time
+
 from llmbrix.agent import Agent
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import SystemMsg, UserMsg
+from llmbrix.prompt import Prompt
 from llmbrix.prompt_reader import PromptReader
-from llmbrix.tools import GetDatetime, ListDir
+from llmbrix.tools import AboutMe, GetDatetime, ListDir
 
-prompt_reader = PromptReader("./prompts")
-
-SYSTEM_MSG = "Be super brief. Use provided tools to either get current datetime or list files in dir."
+RUN_START = time()
 HIST_LIMIT = 5
 MODEL = "gpt-4o-mini"
+PROMPT_DIR = "./prompts"
+CHATBOT_NAME = "Rupert"
+
+
+def get_context_vars():
+    dur = time() - RUN_START
+    weekday_name = datetime.now().strftime("%A")
+    return {"uptime": round(dur, 2), "weekday": weekday_name}
+
+
+prompt_reader = PromptReader(PROMPT_DIR)
+
+# example of full rendering
+system_prompt: Prompt = prompt_reader.read("system")
+system_prompt_str: str = system_prompt.render({"chatbot_name": CHATBOT_NAME})
+
+# example of partial render
+about_me_prompt: Prompt = prompt_reader.read("about_me")
+about_me_prompt: Prompt = about_me_prompt.partial_render({"chatbot_name": CHATBOT_NAME})
+about_me_tool = AboutMe(info=about_me_prompt, var_prep_func=get_context_vars)
 
 gpt = GptOpenAI(model=MODEL)
 chat_history = ChatHistory(max_turns=HIST_LIMIT)
-system_msg = SystemMsg(content=SYSTEM_MSG)
-tools = [GetDatetime(), ListDir()]
+system_msg = SystemMsg(content=system_prompt_str)
+tools = [GetDatetime(), ListDir(), about_me_tool]
 agent = Agent(gpt=gpt, chat_history=chat_history, system_msg=system_msg, tools=tools)
 
 while True:

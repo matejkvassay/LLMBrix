@@ -21,7 +21,7 @@ class Tool(ABC):
         self.params = params
 
     def __call__(self, **kwargs):
-        return str(self.exec(**kwargs))
+        return self.exec(**kwargs)
 
     @abstractmethod
     def exec(self, **kwargs) -> ToolOutput:
