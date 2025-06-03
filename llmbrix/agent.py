@@ -41,7 +41,7 @@ class Agent:
         assert max_tool_call_iter > 0
         self.gpt = gpt
         self.chat_history = chat_history
-        if len(self.chat_history) == 0:
+        if (len(self.chat_history) == 0) and (system_msg is not None):
             self.chat_history.add(system_msg)
         self.tools = tools
         if tools:
