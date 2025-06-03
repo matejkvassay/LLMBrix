@@ -19,7 +19,7 @@ class OutputModel(BaseModel):
 
 messages = [SystemMsg(content=SYSTEM_MSG), UserMsg(content=USER_MSG)]
 gpt = GptOpenAI(model=MODEL)
-output = gpt.generate_structured(messages, output_format=OutputModel)
+output: OutputModel = gpt.generate_structured(messages, output_format=OutputModel)
 
 print(messages)
 print(output)
