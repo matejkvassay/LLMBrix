@@ -6,24 +6,56 @@ from llmbrix.tool_executor import ToolExecutor
 
 
 class Agent:
+    """
+    Tool calling LLM Chatbot Agent.
+
+    Takes request from user, calls LLM, executes tool calls and answers to the user.
+    Internally operates chat history to store and remember messages.
+
+    Operates in ReAct fashion with multiple tool call iterations.
+    """
+
     def __init__(
         self,
         gpt: GptOpenAI,
-        system_msg: SystemMsg,
         chat_history: ChatHistory,
+        system_msg: SystemMsg = None,
         tools: list[Tool] | None = None,
         max_tool_call_iter=1,
     ):
+        """
+        :param gpt: Instance of GptOpenAI LLM wrapper.
+        :param chat_history: ChatHistory instance. Will be used to store new messages (both user and agent produced).
+                             If passed chat history is not empty it will be used and system_mgs argument will be
+                             ignored. Can be used to restore agent form previous state.
+        :param system_msg: System message to set up general agent instructions.
+                           Optional but highly recommended.
+                           Ignored if chat_history passed already contains some messages.
+        :param tools: List of tools to register to the chatbot agent. Agent will decide on its own to use these tools
+                      when needed to answer user's question.
+        :param max_tool_call_iter: Maximum number of tool call loops Agent is allowed to do.
+                                   Each loop can include multiple tool calls. Agent can decide to repeat tool calls
+                                   if context to answer user's question was not successfully provided or the answer
+                                   requires multiple subsequent tool calls.
+        """
         assert max_tool_call_iter > 0
         self.gpt = gpt
         self.chat_history = chat_history
-        self.chat_history.add(system_msg)
+        if len(self.chat_history) == 0:
+            self.chat_history.add(system_msg)
         self.tools = tools
         if tools:
             self.tool_executor = ToolExecutor(tools=tools)
         self.max_tool_call_iter = max_tool_call_iter
 
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
+        """
+        Executes new turn of conversation.
+        Can add multiple messages in chat history - tool calls, tool outputs, assistant message.
+
+        :param user_msg: UserMsg containing user's response / question/
+        :return: AssistantMsg instance containing final answer from LLM
+        """
         self.chat_history.add(user_msg)
 
         for _ in range(self.max_tool_call_iter):

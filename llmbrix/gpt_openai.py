@@ -11,15 +11,27 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class GptResponse(BaseModel):
+    """
+    Response from a GPT model used for non-structured LLM outputs.
+    Contains assistant message and list of tool calls (potentially empty list).
+    """
+
     message: AssistantMsg
     tool_calls: list[ToolRequestMsg]
 
 
 class GptOpenAI:
     """
-    Represents OpenAI GPT responses API.
+    Wraps OpenAI GPT responses API.
     Enables to generate tokens using GPT LLM models.
-    Supports structured outputs and tool calls.
+
+    For unstructured responses and tool calls use:
+    `generate()`
+
+    For structured LLM output use:
+    `generate_structured()`
+
+    Expects "OPENAI_API_KEY=<your token>" env variable to be set.
     """
 
     def __init__(self, model: str):

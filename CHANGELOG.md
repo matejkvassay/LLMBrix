@@ -1,4 +1,10 @@
-# [2025/06/2]
+# [2025/06/03]
+- more docstrings added
+- chat history len and count_conv_turns methods added
+-
+
+# [2025/06/02]
+
 - tool parameters made modular
 - tools return ToolOutput and include debug metadata if viable
 - tool executor includes stack trace and exception as metadata of tool message

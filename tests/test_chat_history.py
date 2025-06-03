@@ -35,7 +35,8 @@ def test_add_valid_sequence(user_msg, assistant_msg, system_msg):
     assert messages[0] == system_msg
     assert messages[1] == user_msg
     assert messages[2] == assistant_msg
-    assert len(history) == 1
+    assert len(history) == 3
+    assert history.count_conv_turns() == 1
 
 
 def test_add_tool_message_after_user(user_msg, tool_msg):
@@ -46,7 +47,8 @@ def test_add_tool_message_after_user(user_msg, tool_msg):
     messages = history.get()
     assert messages[0] == user_msg
     assert messages[1] == tool_msg
-    assert len(history) == 1
+    assert len(history) == 2
+    assert history.count_conv_turns() == 1
 
 
 def test_reject_assistant_before_user(assistant_msg):
@@ -99,7 +101,8 @@ def test_trim_behavior(user_msg):
         history.add(UserMsg(role="user", content=f"Turn {i}"))
         history.add(AssistantMsg(role="assistant", content=f"Reply {i}"))
 
-    assert len(history) == 2  # only 2 most recent turns retained
+    assert len(history) == 4
+    assert history.count_conv_turns() == 2  # only 2 most recent turns retained
 
     msgs = history.get()
     assert "Turn 0" not in [m.content for m in msgs]
