@@ -1,5 +1,12 @@
 # Anatomy of Python code base
 
+Feature	Benefit	Suggestion
+source_hash	Track file changes	Add to PythonFile.meta
+statement_type for Code	Enables finer filtering	e.g., "assignment", "return"
+parent_block_id in meta	Track nesting without recursion	Useful in flat DBs
+doc_embedding or chunk_id	RAG-oriented metadata	Store in meta per ScriptBlock
+
+
 ## Reduced minimal rag data model
 - only python files
 -
