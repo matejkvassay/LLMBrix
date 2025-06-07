@@ -1,3 +1,6 @@
+# [2025/06/07]
+- Agent class support for `str` system msg
+
 # [2025/06/03]
 - all missing docstrings added
 - chat history method count_conv_turns() added

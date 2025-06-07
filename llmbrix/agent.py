@@ -19,7 +19,7 @@ class Agent:
         self,
         gpt: GptOpenAI,
         chat_history: ChatHistory,
-        system_msg: SystemMsg = None,
+        system_msg: str | SystemMsg = None,
         tools: list[Tool] | None = None,
         max_tool_call_iter=1,
     ):
@@ -31,6 +31,7 @@ class Agent:
         :param system_msg: System message to set up general agent instructions.
                            Optional but highly recommended.
                            Ignored if chat_history passed already contains some messages.
+                           If str its automatically transformed to SystemMsg instance.
         :param tools: List of tools to register to the chatbot agent. Agent will decide on its own to use these tools
                       when needed to answer user's question.
         :param max_tool_call_iter: Maximum number of tool call loops Agent is allowed to do.
@@ -41,6 +42,8 @@ class Agent:
         assert max_tool_call_iter > 0
         self.gpt = gpt
         self.chat_history = chat_history
+        if isinstance(system_msg, str):
+            system_msg = SystemMsg(content=system_msg)
         if (len(self.chat_history) == 0) and (system_msg is not None):
             self.chat_history.add(system_msg)
         self.tools = tools
