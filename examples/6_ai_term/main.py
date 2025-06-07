@@ -4,6 +4,10 @@ import os
 import readline
 import subprocess
 
+HIST_MAX = 1000
+
+readline.set_history_length(HIST_MAX)
+
 # Enable TAB completion (macOS/libedit compatible)
 if "libedit" in readline.__doc__:
     readline.parse_and_bind("bind ^I rl_complete")
