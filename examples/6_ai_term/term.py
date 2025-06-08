@@ -1,0 +1,193 @@
+import glob
+import os
+import subprocess
+
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.styles import Style
+from pydantic import BaseModel
+
+from llmbrix.agent import Agent
+from llmbrix.chat_history import ChatHistory
+from llmbrix.gpt_openai import GptOpenAI
+from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIG
+HIST_FILE = os.path.expanduser("~/.llmbrix_shell_history")
+MODEL = "gpt-4o-mini"
+TERMINAL_SYS_PROMPT = (
+    "You will get a text user entered into a Unix terminal that failed.\n"
+    "Fix it if it's a broken terminal command (e.g. typo).\n"
+    "If it's natural language, convert it to a valid command.\n"
+    "If unrelated, return empty string."
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI SETUP
+
+
+class TerminalCommand(BaseModel):
+    valid_terminal_command: str
+
+
+chat_history_terminal = ChatHistory(max_turns=3)
+chat_history_terminal.add(SystemMsg(content=TERMINAL_SYS_PROMPT))
+
+gpt = GptOpenAI(model=MODEL)
+
+ai_bot = Agent(
+    gpt=gpt,
+    chat_history=ChatHistory(max_turns=5),
+    system_msg="You are a concise assistant for use inside a narrow terminal window.",
+)
+
+code_bot = Agent(
+    gpt=gpt,
+    chat_history=ChatHistory(max_turns=5),
+    system_msg="You only respond with valid Python code. No explanations.",
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SHELL COMPLETER
+
+
+class ShellCompleter(Completer):
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor.lstrip()
+        words = text.split()
+
+        if not words:
+            return
+
+        first = words[0]
+        is_first = document.cursor_position <= len(first)
+
+        if is_first:
+            # Complete command names from PATH
+            paths = os.environ.get("PATH", "").split(os.pathsep)
+            seen = set()
+            for path in paths:
+                try:
+                    for entry in os.listdir(path):
+                        if entry not in seen and entry.startswith(first):
+                            seen.add(entry)
+                            yield Completion(entry, start_position=-len(first))
+                except Exception:
+                    continue
+        else:
+            # Complete files/dirs
+            current = document.get_word_before_cursor()
+            matches = glob.glob(current + "*")
+            for match in matches:
+                yield Completion(match, start_position=-len(current))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SHELL STATE + EXECUTION
+
+current_dir = os.getcwd()
+prev_dir = None
+
+
+def execute_cd_command(cmd: str, allow_ai=True):
+    global prev_dir, current_dir
+    path = cmd[3:].strip()
+    if path == "-":
+        if prev_dir:
+            current_dir, prev_dir = prev_dir, current_dir
+        else:
+            print("❌ No previous directory")
+            if allow_ai:
+                execute_ai_term_command(cmd)
+            return
+    else:
+        new_path = os.path.abspath(os.path.join(current_dir, path))
+        if os.path.isdir(new_path):
+            prev_dir = current_dir
+            current_dir = new_path
+        else:
+            print(f"❌ No such directory: {path}")
+            if allow_ai:
+                execute_ai_term_command(cmd)
+            return
+
+
+def execute_ai_term_command(cmd: str):
+    chat_history_terminal.add(UserMsg(content=cmd))
+    response = gpt.generate_structured(messages=chat_history_terminal.get(), output_format=TerminalCommand)
+    suggestion = response.valid_terminal_command
+    chat_history_terminal.add(AssistantMsg(content=str(response.model_dump(mode="json"))))
+    if suggestion:
+        print(f"💡 AI Suggestion: {suggestion}")
+        confirm = input("⚠️ Run this command? [y/N]: ").strip().lower()
+        if confirm == "y":
+            result = subprocess.run(suggestion, shell=True, cwd=current_dir)
+            if result.returncode == 0:
+                print("✅ ")
+    else:
+        print("❌ Command failed and no suggestion was found.")
+
+
+def execute_command(cmd: str):
+    global current_dir, prev_dir
+
+    if cmd.startswith("cd "):
+        execute_cd_command(cmd)
+        return
+
+    elif cmd.startswith("a "):
+        user_input = cmd[2:]
+        result = ai_bot.chat(UserMsg(content=user_input)).content
+        print(result)
+        return
+
+    elif cmd.startswith("c "):
+        user_input = cmd[2:]
+        result = code_bot.chat(UserMsg(content=user_input)).content
+        print(result)
+        return
+
+    else:
+        result = subprocess.run(cmd, shell=True, cwd=current_dir)
+        if result.returncode != 0:
+            execute_ai_term_command(cmd)
+        return
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN LOOP
+
+
+def main():
+    global current_dir
+
+    style = Style.from_dict(
+        {
+            "": "",  # default style
+            "prompt": "ansicyan bold",
+        }
+    )
+
+    session = PromptSession(completer=ShellCompleter(), history=FileHistory(HIST_FILE), style=style)
+
+    while True:
+        try:
+            prompt = f"[{os.path.basename(current_dir)}] > "
+            cmd = session.prompt(prompt).strip()  # ← FIXED: no style override
+            if cmd in {"exit", "quit"}:
+                break
+            if cmd:
+                execute_command(cmd)
+        except KeyboardInterrupt:
+            print()
+        except EOFError:
+            print()
+            break
+
+
+if __name__ == "__main__":
+    main()
