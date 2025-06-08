@@ -1,6 +1,7 @@
 import glob
 import os
 import subprocess
+import sys
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -53,10 +54,10 @@ code_bot = Agent(
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SHELL COMPLETER
-
-
 class ShellCompleter(Completer):
     def get_completions(self, document, complete_event):
+        global current_dir
+
         text = document.text_before_cursor.lstrip()
         words = text.split()
 
@@ -79,11 +80,20 @@ class ShellCompleter(Completer):
                 except Exception:
                     continue
         else:
-            # Complete files/dirs
+            # File/dir completion from current_dir
             current = document.get_word_before_cursor()
-            matches = glob.glob(current + "*")
+
+            # Handle things like ~, ., .. correctly
+            prefix = os.path.expanduser(current)
+            if not os.path.isabs(prefix):
+                prefix = os.path.join(current_dir, prefix)
+
+            matches = glob.glob(prefix + "*")
+
             for match in matches:
-                yield Completion(match, start_position=-len(current))
+                # Show relative path instead of full one
+                display = os.path.relpath(match, current_dir)
+                yield Completion(display, start_position=-len(current))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -96,6 +106,7 @@ prev_dir = None
 def execute_cd_command(cmd: str, allow_ai=True):
     global prev_dir, current_dir
     path = cmd[3:].strip()
+
     if path == "-":
         if prev_dir:
             current_dir, prev_dir = prev_dir, current_dir
@@ -105,7 +116,10 @@ def execute_cd_command(cmd: str, allow_ai=True):
                 execute_ai_term_command(cmd)
             return
     else:
-        new_path = os.path.abspath(os.path.join(current_dir, path))
+        expanded_path = os.path.expanduser(path)
+        new_path = os.path.abspath(
+            os.path.join(current_dir, expanded_path) if not os.path.isabs(expanded_path) else expanded_path
+        )
         if os.path.isdir(new_path):
             prev_dir = current_dir
             current_dir = new_path
@@ -114,6 +128,26 @@ def execute_cd_command(cmd: str, allow_ai=True):
             if allow_ai:
                 execute_ai_term_command(cmd)
             return
+
+
+def run_and_capture_output(cmd: str, cwd: str):
+    process = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    stdout = []
+    stderr = []
+
+    while True:
+        out_line = process.stdout.readline()
+        err_line = process.stderr.readline()
+        if out_line:
+            stdout.append(out_line)
+            print(out_line, end="")
+        if err_line:
+            stderr.append(err_line)
+            print(err_line, end="", file=sys.stderr)
+        if out_line == "" and err_line == "" and process.poll() is not None:
+            break
+    return process.returncode, "".join(stdout), "".join(stderr)
 
 
 def execute_ai_term_command(cmd: str):
@@ -125,8 +159,13 @@ def execute_ai_term_command(cmd: str):
         print(f"💡 AI Suggestion: {suggestion}")
         confirm = input("⚠️ Run this command? [y/N]: ").strip().lower()
         if confirm == "y":
-            result = subprocess.run(suggestion, shell=True, cwd=current_dir)
-            if result.returncode == 0:
+            return_code, stdout, stderr = run_and_capture_output(suggestion, current_dir)
+            if return_code == 0:
+                if stdout:
+                    stdout = stdout[:200]
+                else:
+                    stdout = stderr[:200]
+                chat_history_terminal.add(AssistantMsg(content=f"Command returned: {stdout}"))
                 print("✅ ")
     else:
         print("❌ Command failed and no suggestion was found.")
@@ -178,7 +217,7 @@ def main():
         try:
             prompt = f"[{os.path.basename(current_dir)}] > "
             cmd = session.prompt(prompt).strip()  # ← FIXED: no style override
-            if cmd in {"exit", "quit"}:
+            if cmd in {"exit", "exit()", "quit", "e", "q"}:
                 break
             if cmd:
                 execute_command(cmd)
