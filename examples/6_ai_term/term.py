@@ -3,11 +3,14 @@ import os
 import subprocess
 import sys
 
+import pyperclip
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.styles import Style
 from pydantic import BaseModel
+from rich.console import Console
+from rich.markdown import Markdown
 
 from llmbrix.agent import Agent
 from llmbrix.chat_history import ChatHistory
@@ -25,6 +28,7 @@ TERMINAL_SYS_PROMPT = (
     "If unrelated, return empty string."
 )
 
+console = Console()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AI SETUP
@@ -68,7 +72,6 @@ class ShellCompleter(Completer):
         is_first = document.cursor_position <= len(first)
 
         if is_first:
-            # Complete command names from PATH
             paths = os.environ.get("PATH", "").split(os.pathsep)
             seen = set()
             for path in paths:
@@ -80,18 +83,12 @@ class ShellCompleter(Completer):
                 except Exception:
                     continue
         else:
-            # File/dir completion from current_dir
             current = document.get_word_before_cursor()
-
-            # Handle things like ~, ., .. correctly
             prefix = os.path.expanduser(current)
             if not os.path.isabs(prefix):
                 prefix = os.path.join(current_dir, prefix)
-
             matches = glob.glob(prefix + "*")
-
             for match in matches:
-                # Show relative path instead of full one
                 display = os.path.relpath(match, current_dir)
                 yield Completion(display, start_position=-len(current))
 
@@ -111,7 +108,7 @@ def execute_cd_command(cmd: str, allow_ai=True):
         if prev_dir:
             current_dir, prev_dir = prev_dir, current_dir
         else:
-            print("❌  No previous directory")
+            console.print("❌  No previous directory")
             if allow_ai:
                 execute_ai_term_command(cmd)
             return
@@ -124,7 +121,7 @@ def execute_cd_command(cmd: str, allow_ai=True):
             prev_dir = current_dir
             current_dir = new_path
         else:
-            print(f"❌  No such directory: {path}")
+            console.print(f"❌  No such directory: {path}")
             if allow_ai:
                 execute_ai_term_command(cmd)
             return
@@ -132,7 +129,6 @@ def execute_cd_command(cmd: str, allow_ai=True):
 
 def run_and_capture_output(cmd: str, cwd: str):
     process = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
     stdout = []
     stderr = []
 
@@ -154,34 +150,41 @@ def execute_ai_term_command(cmd: str):
     chat_history_terminal.add(UserMsg(content=cmd))
     response = gpt.generate_structured(messages=chat_history_terminal.get(), output_format=TerminalCommand)
     suggestion = response.valid_terminal_command
+
+    # # # Show structured response as Markdown
+    # console.print(Markdown(f"```bash\n{response.model_dump_json(indent=2)}\n```"))
+
     chat_history_terminal.add(AssistantMsg(content=str(response.model_dump(mode="json"))))
+
     if suggestion:
-        print(f"💡 AI Suggestion: {suggestion}")
+        console.print(f"💡 [bold yellow]AI Suggestion:[/bold yellow] `{suggestion}`")
         confirm = input("⚠️ Run this command? [y/N]: ").strip().lower()
         if confirm == "y":
+            # TODO CD generated cmd not working - should redirect to cd exec func
+            # TODO save llm generated cmd in cmd history
             return_code, stdout, stderr = run_and_capture_output(suggestion, current_dir)
             if return_code == 0:
-                if stdout:
-                    stdout = stdout[:200]
-                else:
-                    stdout = stderr[:200]
-                chat_history_terminal.add(AssistantMsg(content=f"Command returned: {stdout}"))
-                print("✅ ")
+                summary = (stdout or stderr)[:200]
+                chat_history_terminal.add(AssistantMsg(content=f"Command returned: {summary}"))
+                console.print("✅ ")
         else:
-            print("❌  Cancelled.")
+            console.print("❌  Cancelled.")
     else:
-        print("❌  No suggestion.")
+        console.print("❌  No suggestion.")
 
 
 def execute_ai_question(question: str):
     result = ai_bot.chat(UserMsg(content=question)).content
-    print(result)
+    console.print(Markdown(result))
     return
 
 
 def execute_code_gen_request(request: str):
     result = code_bot.chat(UserMsg(content=request)).content
-    print(result)
+    pyperclip.copy(result)
+    console.print(Markdown(result))
+    console.print("✅ Copied to clipboard.")
+    # TODO make the output of tool structured
     return
 
 
@@ -191,13 +194,12 @@ def execute_command(cmd: str):
     if cmd.startswith("cd "):
         execute_cd_command(cmd)
         return
-
     elif cmd.startswith("a "):
         execute_ai_question(cmd[2:])
-
+        return
     elif cmd.startswith("c "):
         execute_code_gen_request(cmd[2:])
-
+        return
     else:
         result = subprocess.run(cmd, shell=True, cwd=current_dir)
         if result.returncode != 0:
@@ -214,7 +216,7 @@ def main():
 
     style = Style.from_dict(
         {
-            "": "",  # default style
+            "": "",
             "prompt": "ansicyan bold",
         }
     )
@@ -224,7 +226,7 @@ def main():
     while True:
         try:
             prompt = f"[{os.path.basename(current_dir)}] > "
-            cmd = session.prompt(prompt).strip()  # ← FIXED: no style override
+            cmd = session.prompt(prompt).strip()
             if cmd in {"exit", "exit()", "quit", "e", "q"}:
                 break
             if cmd:
