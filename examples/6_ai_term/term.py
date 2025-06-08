@@ -111,7 +111,7 @@ def execute_cd_command(cmd: str, allow_ai=True):
         if prev_dir:
             current_dir, prev_dir = prev_dir, current_dir
         else:
-            print("❌ No previous directory")
+            print("❌  No previous directory")
             if allow_ai:
                 execute_ai_term_command(cmd)
             return
@@ -124,7 +124,7 @@ def execute_cd_command(cmd: str, allow_ai=True):
             prev_dir = current_dir
             current_dir = new_path
         else:
-            print(f"❌ No such directory: {path}")
+            print(f"❌  No such directory: {path}")
             if allow_ai:
                 execute_ai_term_command(cmd)
             return
@@ -167,8 +167,22 @@ def execute_ai_term_command(cmd: str):
                     stdout = stderr[:200]
                 chat_history_terminal.add(AssistantMsg(content=f"Command returned: {stdout}"))
                 print("✅ ")
+        else:
+            print("❌  Cancelled.")
     else:
-        print("❌ Command failed and no suggestion was found.")
+        print("❌  No suggestion.")
+
+
+def execute_ai_question(question: str):
+    result = ai_bot.chat(UserMsg(content=question)).content
+    print(result)
+    return
+
+
+def execute_code_gen_request(request: str):
+    result = code_bot.chat(UserMsg(content=request)).content
+    print(result)
+    return
 
 
 def execute_command(cmd: str):
@@ -179,16 +193,10 @@ def execute_command(cmd: str):
         return
 
     elif cmd.startswith("a "):
-        user_input = cmd[2:]
-        result = ai_bot.chat(UserMsg(content=user_input)).content
-        print(result)
-        return
+        execute_ai_question(cmd[2:])
 
     elif cmd.startswith("c "):
-        user_input = cmd[2:]
-        result = code_bot.chat(UserMsg(content=user_input)).content
-        print(result)
-        return
+        execute_code_gen_request(cmd[2:])
 
     else:
         result = subprocess.run(cmd, shell=True, cwd=current_dir)
