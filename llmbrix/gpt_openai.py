@@ -17,8 +17,6 @@ class GptOpenAI:
     """
     Wraps OpenAI GPT responses API.
 
-    Enables to generate tokens using GPT models.
-
     Expects "OPENAI_API_KEY=<your token>" env variable to be set.
     """
 
@@ -26,7 +24,7 @@ class GptOpenAI:
         self,
         model: str = None,
         tools: list[Tool] = None,
-        output_format: Type[T] = None,
+        output_format: Optional[Type[T]] = None,
         api_timeout: int = DEFAULT_TIMEOUT,
         **responses_kwargs,
     ):
@@ -52,12 +50,20 @@ class GptOpenAI:
         self.responses_kwargs = responses_kwargs
         self.client = OpenAI()
 
+    def __call__(self, *args, **kwargs) -> GptResponse:
+        """
+        Calls `generate()` method with provided args and kwargs.
+
+        See docstring of `generate()` for supported args and kwargs values and return and raises info.
+        """
+        return self.generate(*args, **kwargs)
+
     def generate(
         self,
         messages: list[Msg],
         model: str = None,
         tools: list[Tool] = None,
-        output_format: Type[T] = None,
+        output_format: Optional[Type[T]] = None,
         api_timeout: int = None,
         **responses_kwargs,
     ) -> GptResponse:
