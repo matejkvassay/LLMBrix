@@ -6,6 +6,7 @@
 - new field `content_parsed` in `AssistantMsg` containing parsed structured ouput
 - parsed output automatically converted to `str` and passed as `content` into `AssistantMsg` visible to LLM on predict
 - responses API `**kwargs` can be now passed to `generate()` function
+- `OpenAIResponseError` custom exception added
 
 # [2025/06/03]
 
