@@ -1,4 +1,14 @@
+# [2025/06/09]
+
+- refactor of `GptOpenai` class
+- structured outputs supported in `generate()` function
+- `generate_structured()` function removed
+- new field `content_parsed` in `AssistantMsg` containing parsed structured ouput
+- parsed output automatically converted to `str` and passed as `content` into `AssistantMsg` visible to LLM on predict
+- responses API `**kwargs` can be now passed to `generate()` function
+
 # [2025/06/03]
+
 - all missing docstrings added
 - chat history method count_conv_turns() added
 - new chatbot example demonstrating prompt reading and rendering

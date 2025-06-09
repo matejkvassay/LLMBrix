@@ -4,20 +4,11 @@ from openai import OpenAI
 from openai.types.responses import ResponseFunctionToolCall
 from pydantic import BaseModel
 
+from llmbrix.gpt_response import GptResponse
 from llmbrix.msg import AssistantMsg, Msg, ToolRequestMsg
 from llmbrix.tool import Tool
 
 T = TypeVar("T", bound=BaseModel)
-
-
-class GptResponse(BaseModel):
-    """
-    Response from a GPT model used for non-structured LLM outputs.
-    Contains assistant message and list of tool calls (potentially empty list).
-    """
-
-    message: AssistantMsg
-    tool_calls: list[ToolRequestMsg]
 
 
 class GptOpenAI:
@@ -72,7 +63,7 @@ class GptOpenAI:
             )
         if response.error:
             raise RuntimeError(
-                f"Error during OpenAI API cal: " f"code={response.error}, " f'msg="{response.error.message}"'
+                f"Error during OpenAI API call: " f"code={response.error}, " f'msg="{response.error.message}"'
             )
 
         tool_call_requests = [
@@ -91,22 +82,3 @@ class GptOpenAI:
             assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
 
         return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)
-
-    def generate_structured(self, messages: list[Msg], output_format: Type[T]) -> Optional[T]:
-        """
-        Generate response with LLM.
-        Uses structured output - LLM output is formatted into specific Pydantic model pass in "output_format".
-        Tool calls are not supported when using structured outputs.
-
-        :param messages: list of messages for LLM to be used as input.
-        :param output_format: Pydantic BaseModel instance.
-
-        :return: Filled BaseModel instance or None if generation failed.
-        """
-        messages = [m.to_openai() for m in messages]
-        response = self.client.responses.parse(input=messages, model=self.model, text_format=output_format)
-        if response.error:
-            raise RuntimeError(
-                f"Error during OpenAI API cal: " f"code={response.error}, " f'msg="{response.error.message}"'
-            )
-        return response.output_parsed
