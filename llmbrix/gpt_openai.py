@@ -1,3 +1,4 @@
+import json
 from typing import Optional, Type, TypeVar, cast
 
 from openai import OpenAI
@@ -127,7 +128,7 @@ class GptOpenAI:
 
         else:
             parsed = cast(Optional[T], response.output_parsed)
-            content = parsed.model_dump(mode="json") if parsed else None
+            content = json.dumps(parsed.model_dump(mode="json")) if parsed else None
             assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
 
         return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)

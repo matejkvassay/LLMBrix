@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from llmbrix.gpt_openai import GptOpenAI
+from llmbrix.gpt_response import GptResponse
 from llmbrix.msg import SystemMsg, UserMsg
 
 """
@@ -12,14 +13,20 @@ SYSTEM_MSG = "You name 3 colors that are most similar to color from user."
 USER_MSG = "I chooose yellow!"
 
 
-class OutputModel(BaseModel):
+class SelectedColor(BaseModel):
     users_color: str
     most_similar_colors: list[str]
 
 
 messages = [SystemMsg(content=SYSTEM_MSG), UserMsg(content=USER_MSG)]
 gpt = GptOpenAI(model=MODEL)
-output: OutputModel = gpt.generate_structured(messages, output_format=OutputModel)
+output: GptResponse = gpt.generate(messages, output_format=SelectedColor)
+messages.append(output.message)
 
-print(messages)
-print(output)
+for m in messages:
+    print(f"\n\n{m.role.upper()}:")
+    print(m.content)
+
+print("\n\nPARSED: ")
+p = output.message.content_parsed
+print(f'VAL="{p}", TYPE="{type(p)}"')

@@ -2,7 +2,7 @@ from llmbrix.agent import Agent
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import SystemMsg, UserMsg
-from llmbrix.tools import GetDatetime, ListDirTool
+from llmbrix.tools import GetDatetime, ListDir
 
 SYSTEM_MSG = "Be super brief. Use provided tools to either get current datetime or list files in dir."
 HIST_LIMIT = 5
@@ -11,7 +11,7 @@ MODEL = "gpt-4o-mini"
 gpt = GptOpenAI(model=MODEL)
 chat_history = ChatHistory(max_turns=HIST_LIMIT)
 system_msg = SystemMsg(content=SYSTEM_MSG)
-tools = [GetDatetime(), ListDirTool()]
+tools = [GetDatetime(), ListDir()]
 agent = Agent(gpt=gpt, chat_history=chat_history, system_msg=system_msg, tools=tools)
 
 while True:
