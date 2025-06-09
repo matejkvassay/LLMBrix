@@ -1,4 +1,4 @@
-from typing import Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar, cast
 
 from openai import OpenAI
 from openai.types.responses import ResponseFunctionToolCall
@@ -41,7 +41,9 @@ class GptOpenAI:
         self.model = model
         self.client = OpenAI()
 
-    def generate(self, messages: list[Msg], tools: list[Tool] = None) -> GptResponse:
+    def generate(
+        self, messages: list[Msg], tools: list[Tool] = None, output_format: Type[T] = None, **responses_kwargs
+    ) -> GptResponse:
         """
         Generates response from LLM.
         Tool calls are supported.
@@ -49,6 +51,10 @@ class GptOpenAI:
 
         :param messages: list of messages for LLM to be used as input.
         :param tools: (optional) list of Tool child instances to register to LLM as tools to be used
+        :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
+        :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
+                                 Note if output format is defined responses.parse is used.
+                                 If output format is not defined responses.create is used.
 
         :return: GptResponse object (contains AssistantMsg and tool calls list).
         """
@@ -57,15 +63,34 @@ class GptOpenAI:
             tools = [t.openai_schema for t in tools]
         else:
             tools = []
-        response = self.client.responses.create(input=messages, model=self.model, tools=tools)
+
+        if output_format is None:
+            response = self.client.responses.create(input=messages, model=self.model, tools=tools, **responses_kwargs)
+        else:
+            response = self.client.responses.parse(
+                input=messages, model=self.model, tools=tools, text_format=output_format, **responses_kwargs
+            )
         if response.error:
             raise RuntimeError(
                 f"Error during OpenAI API cal: " f"code={response.error}, " f'msg="{response.error.message}"'
             )
+
         tool_call_requests = [
             ToolRequestMsg.from_openai(t) for t in response.output if isinstance(t, ResponseFunctionToolCall)
         ]
-        return GptResponse(message=AssistantMsg(content=response.output_text), tool_calls=tool_call_requests)
+
+        if output_format is None:
+            assistant_msg = AssistantMsg(content=response.output_text)
+
+        else:
+            parsed: Optional[T] = response.output_parsed
+            content = None
+            if parsed is not None:
+                parsed = cast(T, parsed)
+                content = parsed.model_dump(mode="json")
+            assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
+
+        return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)
 
     def generate_structured(self, messages: list[Msg], output_format: Type[T]) -> Optional[T]:
         """
