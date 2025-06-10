@@ -181,53 +181,41 @@ def read_multiline_input(prompt: str) -> str:
 
 
 def blessed_input_prompt(prompt_str):
-    buffer = []
-    cursor_pos = 0
+    buffer = ""
     history = readline.get_current_history_length()
     history_index = history
     with term.cbreak(), term.hidden_cursor():
         print(term.move_x(0) + term.clear_eol + term.bold_blue(prompt_str), end="", flush=True)
-        while True:
-            key = term.inkey(timeout=0.5)
-            if key.code in (term.KEY_ENTER, term.KEY_RETURN):
-                print()
-                return "".join(buffer)
-            elif key.code == term.KEY_BACKSPACE:
-                if cursor_pos > 0:
-                    del buffer[cursor_pos - 1]
-                    cursor_pos -= 1
-            elif key.code == term.KEY_LEFT:
-                if cursor_pos > 0:
-                    cursor_pos -= 1
-            elif key.code == term.KEY_RIGHT:
-                if cursor_pos < len(buffer):
-                    cursor_pos += 1
-            elif key.code == term.KEY_UP:
-                if history_index > 0:
-                    history_index -= 1
-                    buf = readline.get_history_item(history_index + 1) or ""
-                    buffer = list(buf)
-                    cursor_pos = len(buffer)
-            elif key.code == term.KEY_DOWN:
-                if history_index < readline.get_current_history_length() - 1:
-                    history_index += 1
-                    buf = readline.get_history_item(history_index + 1) or ""
-                    buffer = list(buf)
-                    cursor_pos = len(buffer)
-                else:
-                    history_index = readline.get_current_history_length()
-                    buffer = []
-                    cursor_pos = 0
-            elif key.is_sequence:
-                continue
-            elif key:
-                buffer.insert(cursor_pos, key)
-                cursor_pos += 1
+        with term.location():
+            while True:
+                key = term.inkey(timeout=0.5)
+                if key.code in (term.KEY_ENTER, term.KEY_RETURN):
+                    print()
+                    return buffer
+                elif key.code == term.KEY_BACKSPACE:
+                    if buffer:
+                        buffer = buffer[:-1]
+                elif key.code == term.KEY_UP:
+                    if history_index > 0:
+                        history_index -= 1
+                        buffer = readline.get_history_item(history_index + 1) or ""
+                elif key.code == term.KEY_DOWN:
+                    if history_index < readline.get_current_history_length() - 1:
+                        history_index += 1
+                        buffer = readline.get_history_item(history_index + 1) or ""
+                    else:
+                        history_index = readline.get_current_history_length()
+                        buffer = ""
+                elif key.is_sequence:
+                    continue
+                elif key:
+                    buffer += key
 
-            visible_input = "".join(buffer)
-            print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{visible_input}", end="", flush=True)
-            cursor_char = buffer[cursor_pos] if cursor_pos < len(buffer) else " "
-            print(term.move_x(len(prompt_str) + cursor_pos) + term.reverse(cursor_char), end="", flush=True)
+                print(
+                    f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{buffer}{term.blink('_')}",
+                    end="",
+                    flush=True,
+                )
 
 
 def main():

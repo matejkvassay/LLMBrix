@@ -1,4 +1,4 @@
-prompt_toolkit
+blessed
 rich
 llmbrix
 pyperclip
