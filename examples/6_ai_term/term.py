@@ -17,8 +17,6 @@ from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, UserMsg
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIG
 HIST_FILE = os.path.expanduser("~/.llmbrix_shell_history")
 MODEL = "gpt-4o-mini"
 TERMINAL_SYS_PROMPT = (
@@ -27,12 +25,6 @@ TERMINAL_SYS_PROMPT = (
     "If it's natural language, convert it to a valid command.\n"
     "If unrelated, return empty string."
 )
-
-console = Console()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# AI SETUP
 
 
 class TerminalCommand(BaseModel):
@@ -60,6 +52,11 @@ terminal_bot = Agent(
     chat_history=ChatHistory(max_turns=5),
     system_msg=TERMINAL_SYS_PROMPT,
 )
+
+console = Console()
+command_history = FileHistory(HIST_FILE)
+current_dir = os.getcwd()
+prev_dir = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -97,13 +94,6 @@ class ShellCompleter(Completer):
             for match in matches:
                 display = os.path.relpath(match, current_dir)
                 yield Completion(display, start_position=-len(current))
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SHELL STATE + EXECUTION
-
-current_dir = os.getcwd()
-prev_dir = None
 
 
 def execute_cd_command(cmd: str, allow_ai=True):
@@ -153,25 +143,21 @@ def run_and_capture_output(cmd: str, cwd: str):
 
 
 def execute_ai_term_command(cmd: str):
-    # chat_history_terminal.add(UserMsg(content=cmd))
-    # response = gpt.generate_structured(messages=chat_history_terminal.get(), output_format=TerminalCommand)
     response: AssistantMsg = terminal_bot.chat(UserMsg(content=cmd))
-    suggestion = response.content_parsed.valid_terminal_command
-
-    # # # Show structured response as Markdown
-    # console.print(Markdown(f"```bash\n{response.model_dump_json(indent=2)}\n```"))
-
-    if suggestion:
-        console.print(f"💡 [bold yellow]AI Suggestion:[/bold yellow] `{suggestion}`")
+    if response.content_parsed:
+        generated_cmd = response.content_parsed.valid_terminal_command
+        console.print(f"💡 [bold yellow]AI Suggestion:[/bold yellow] `{generated_cmd}`")
         confirm = input("⚠️ Run this command? [y/N]: ").strip().lower()
         if confirm == "y":
-            # TODO CD generated cmd not working - should redirect to cd exec func
-            # TODO save llm generated cmd in cmd history
-            return_code, stdout, stderr = run_and_capture_output(suggestion, current_dir)
-            if return_code == 0:
-                summary = (stdout or stderr)[:200]
-                terminal_bot.chat_history.add(AssistantMsg(content=f"Command returned: {summary}"))
-                console.print("✅ ")
+            command_history.store_string(generated_cmd)
+            if generated_cmd.startswith("cd "):
+                execute_cd_command(generated_cmd, allow_ai=False)
+            else:
+                return_code, stdout, stderr = run_and_capture_output(generated_cmd, current_dir)
+                if return_code == 0:
+                    summary = (stdout or stderr)[:200]
+                    terminal_bot.chat_history.add(AssistantMsg(content=f"Command returned: {summary}"))
+                    console.print("✅ ")
         else:
             console.print("❌  Cancelled.")
     else:
@@ -213,10 +199,6 @@ def execute_command(cmd: str):
         return
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MAIN LOOP
-
-
 def main():
     global current_dir
 
@@ -227,7 +209,7 @@ def main():
         }
     )
 
-    session = PromptSession(completer=ShellCompleter(), history=FileHistory(HIST_FILE), style=style)
+    session = PromptSession(completer=ShellCompleter(), history=command_history, style=style)
 
     while True:
         try:
