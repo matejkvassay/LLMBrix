@@ -152,8 +152,17 @@ def execute_command(cmd: str):
     elif cmd.startswith("c "):
         execute_code_gen_request(cmd[2:])
     else:
-        result = subprocess.run(cmd, shell=True, cwd=current_dir)
-        if result.returncode != 0:
+        process = subprocess.Popen(
+            cmd, shell=True, cwd=current_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        stdout, stderr = process.communicate()
+
+        if stdout:
+            print(stdout, end="")
+        if stderr:
+            print(stderr, end="", file=sys.stderr)
+
+        if process.returncode != 0 and stderr.strip():
             execute_ai_term_command(cmd)
 
 
@@ -170,9 +179,7 @@ def read_multiline_input(prompt: str) -> str:
 
 
 def main():
-    console.print("[bold green]Welcome to LLMBrix AI Terminal![/bold green]")
-    console.print("[bold green]Available commands (type before your request):[/bold green]")
-    console.print("[bold green](no cmd) - AI terminal; a = ask chatbot; c - generate code; q - exit[/bold green]")
+    console.print("[bold green]Welcome to AI Terminal (Blessed-based)[/bold green]")
 
     while True:
         try:
