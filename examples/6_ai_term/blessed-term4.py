@@ -101,16 +101,10 @@ def run_and_capture_output(cmd: str, cwd: str):
                 cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             stdout, stderr = process.communicate()
-            if process.returncode == 0:
-                if stdout:
-                    console.print(stdout, style="green")
-                if stderr:
-                    console.print(stderr, style="green")
-            else:
-                if stdout:
-                    console.print(stdout, style="green")
-                if stderr:
-                    console.print(stderr, style="bold red")
+            if stdout:
+                console.print(stdout, style="green")
+            if stderr:
+                console.print(stderr, style="bold red")
             return process.returncode, stdout, stderr
     except FileNotFoundError as e:
         console.print(f"[bold red]❌ Command not found:[/bold red] {cmd}")
