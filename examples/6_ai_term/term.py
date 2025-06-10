@@ -199,7 +199,7 @@ def blessed_input_prompt(prompt_str):
             key = term.inkey(timeout=0.1)
 
             if key.code in (term.KEY_ENTER, term.KEY_RETURN):
-                print(term.move_x(0) + term.clear_eol, end="", flush=True)  # Clear current line
+                print(term.move_x(0) + term.clear_eol, end="", flush=True)
                 return "".join(buffer)
             elif key.code == term.KEY_BACKSPACE:
                 if cursor_pos > 0:
@@ -208,9 +208,13 @@ def blessed_input_prompt(prompt_str):
             elif key.code == term.KEY_LEFT:
                 if cursor_pos > 0:
                     cursor_pos -= 1
+                blink = True  # Show cursor immediately when moving
+                last_blink_time = now
             elif key.code == term.KEY_RIGHT:
                 if cursor_pos < len(buffer):
                     cursor_pos += 1
+                blink = True  # Show cursor immediately when moving
+                last_blink_time = now
             elif key.code == term.KEY_UP:
                 if history_index > 0:
                     history_index -= 1
@@ -233,18 +237,17 @@ def blessed_input_prompt(prompt_str):
                 buffer.insert(cursor_pos, key)
                 cursor_pos += 1
 
-            # Blink toggle
             if now - last_blink_time > 0.5:
                 blink = not blink
                 last_blink_time = now
 
             visible_input = "".join(buffer)
             print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{visible_input}", end="", flush=True)
+            print(term.move_x(len(prompt_str) + cursor_pos), end="", flush=True)
             if blink:
-                cursor_char = buffer[cursor_pos] if cursor_pos < len(buffer) else " "
-                print(term.move_x(len(prompt_str) + cursor_pos) + term.reverse(cursor_char), end="", flush=True)
+                print(term.reverse(buffer[cursor_pos] if cursor_pos < len(buffer) else " "), end="", flush=True)
             else:
-                print(term.move_x(len(prompt_str) + cursor_pos) + " ", end="", flush=True)
+                print(buffer[cursor_pos] if cursor_pos < len(buffer) else " ", end="", flush=True)
 
 
 def main():
