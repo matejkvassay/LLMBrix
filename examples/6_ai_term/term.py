@@ -1,6 +1,7 @@
 import os
 import readline
 import subprocess
+import time
 
 import pyperclip
 from blessed import Terminal
@@ -188,12 +189,17 @@ def blessed_input_prompt(prompt_str):
     cursor_pos = 0
     history = readline.get_current_history_length()
     history_index = history
+    blink = True
+    last_blink_time = time.time()
+
     with term.cbreak(), term.hidden_cursor():
         print(term.move_x(0) + term.clear_eol + term.bold_blue(prompt_str), end="", flush=True)
         while True:
-            key = term.inkey(timeout=0.5)
+            now = time.time()
+            key = term.inkey(timeout=0.1)
+
             if key.code in (term.KEY_ENTER, term.KEY_RETURN):
-                print()
+                print(term.move_x(0) + term.clear_eol, end="", flush=True)  # Clear current line
                 return "".join(buffer)
             elif key.code == term.KEY_BACKSPACE:
                 if cursor_pos > 0:
@@ -227,10 +233,18 @@ def blessed_input_prompt(prompt_str):
                 buffer.insert(cursor_pos, key)
                 cursor_pos += 1
 
+            # Blink toggle
+            if now - last_blink_time > 0.5:
+                blink = not blink
+                last_blink_time = now
+
             visible_input = "".join(buffer)
             print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{visible_input}", end="", flush=True)
-            cursor_char = buffer[cursor_pos] if cursor_pos < len(buffer) else " "
-            print(term.move_x(len(prompt_str) + cursor_pos) + term.reverse(cursor_char), end="", flush=True)
+            if blink:
+                cursor_char = buffer[cursor_pos] if cursor_pos < len(buffer) else " "
+                print(term.move_x(len(prompt_str) + cursor_pos) + term.reverse(cursor_char), end="", flush=True)
+            else:
+                print(term.move_x(len(prompt_str) + cursor_pos) + " ", end="", flush=True)
 
 
 def main():
