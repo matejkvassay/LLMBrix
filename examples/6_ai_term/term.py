@@ -101,15 +101,12 @@ def run_and_capture_output(cmd: str, cwd: str):
                 cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             stdout, stderr = process.communicate()
-            if process.returncode == 0:
-                if stdout:
-                    console.print(stdout, style="green")
-                if stderr:
+            if stdout:
+                console.print(stdout, style="green")
+            if stderr:
+                if process.returncode == 0:
                     console.print(stderr, style="green")
-            else:
-                if stdout:
-                    console.print(stdout, style="green")
-                if stderr:
+                else:
                     console.print(stderr, style="bold red")
             return process.returncode, stdout, stderr
     except FileNotFoundError as e:
@@ -170,7 +167,7 @@ def execute_command(cmd: str):
         execute_code_gen_request(cmd[2:])
     else:
         return_code, stdout, stderr = run_and_capture_output(cmd, current_dir)
-        if return_code != 0 and stderr.strip():
+        if return_code != 0:
             execute_ai_term_command(cmd)
 
 
