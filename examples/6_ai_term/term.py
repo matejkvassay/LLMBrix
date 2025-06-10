@@ -1,3 +1,4 @@
+import glob
 import os
 import readline
 import subprocess
@@ -66,6 +67,14 @@ readline.set_history_length(1000)
 def save_to_history(cmd):
     readline.add_history(cmd)
     readline.write_history_file(HIST_FILE)
+
+
+def complete_path(text):
+    if not text:
+        text = "*"
+    elif not text.endswith("*"):
+        text += "*"
+    return sorted(glob.glob(text))
 
 
 def execute_cd_command(cmd: str, allow_ai=True):
@@ -208,12 +217,12 @@ def blessed_input_prompt(prompt_str):
             elif key.code == term.KEY_LEFT:
                 if cursor_pos > 0:
                     cursor_pos -= 1
-                blink = True  # Show cursor immediately when moving
+                blink = True
                 last_blink_time = now
             elif key.code == term.KEY_RIGHT:
                 if cursor_pos < len(buffer):
                     cursor_pos += 1
-                blink = True  # Show cursor immediately when moving
+                blink = True
                 last_blink_time = now
             elif key.code == term.KEY_UP:
                 if history_index > 0:
@@ -231,6 +240,15 @@ def blessed_input_prompt(prompt_str):
                     history_index = readline.get_current_history_length()
                     buffer = []
                     cursor_pos = 0
+            elif key.code == term.KEY_TAB:
+                prefix = "".join(buffer[:cursor_pos])
+                last_token = prefix.split()[-1] if prefix.split() else ""
+                matches = complete_path(last_token)
+                if matches:
+                    suggestion = matches[0]
+                    start = prefix.rfind(last_token)
+                    buffer = list(prefix[:start] + suggestion + "".join(buffer[cursor_pos:]))
+                    cursor_pos = len(prefix[:start] + suggestion)
             elif key.is_sequence:
                 continue
             elif key:
@@ -244,7 +262,7 @@ def blessed_input_prompt(prompt_str):
             visible_input = "".join(buffer)
             print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{visible_input}", end="", flush=True)
             print(term.move_x(len(prompt_str) + cursor_pos), end="", flush=True)
-            if blink:
+            if blink or key.code in (term.KEY_LEFT, term.KEY_RIGHT):
                 print(term.reverse(buffer[cursor_pos] if cursor_pos < len(buffer) else " "), end="", flush=True)
             else:
                 print(buffer[cursor_pos] if cursor_pos < len(buffer) else " ", end="", flush=True)

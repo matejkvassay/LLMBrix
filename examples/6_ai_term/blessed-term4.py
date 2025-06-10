@@ -1,6 +1,7 @@
 import os
 import readline
 import subprocess
+import time
 
 import pyperclip
 from blessed import Terminal
@@ -104,7 +105,10 @@ def run_and_capture_output(cmd: str, cwd: str):
             if stdout:
                 console.print(stdout, style="green")
             if stderr:
-                console.print(stderr, style="bold red")
+                if process.returncode == 0:
+                    console.print(stderr, style="green")
+                else:
+                    console.print(stderr, style="bold red")
             return process.returncode, stdout, stderr
     except FileNotFoundError as e:
         console.print(f"[bold red]❌ Command not found:[/bold red] {cmd}")
@@ -164,7 +168,7 @@ def execute_command(cmd: str):
         execute_code_gen_request(cmd[2:])
     else:
         return_code, stdout, stderr = run_and_capture_output(cmd, current_dir)
-        if return_code != 0 and stderr.strip():
+        if return_code != 0:
             execute_ai_term_command(cmd)
 
 
@@ -185,12 +189,17 @@ def blessed_input_prompt(prompt_str):
     cursor_pos = 0
     history = readline.get_current_history_length()
     history_index = history
+    blink = True
+    last_blink_time = time.time()
+
     with term.cbreak(), term.hidden_cursor():
         print(term.move_x(0) + term.clear_eol + term.bold_blue(prompt_str), end="", flush=True)
         while True:
-            key = term.inkey(timeout=0.5)
+            now = time.time()
+            key = term.inkey(timeout=0.1)
+
             if key.code in (term.KEY_ENTER, term.KEY_RETURN):
-                print()
+                print(term.move_x(0) + term.clear_eol, end="", flush=True)
                 return "".join(buffer)
             elif key.code == term.KEY_BACKSPACE:
                 if cursor_pos > 0:
@@ -199,9 +208,13 @@ def blessed_input_prompt(prompt_str):
             elif key.code == term.KEY_LEFT:
                 if cursor_pos > 0:
                     cursor_pos -= 1
+                blink = True  # Show cursor immediately when moving
+                last_blink_time = now
             elif key.code == term.KEY_RIGHT:
                 if cursor_pos < len(buffer):
                     cursor_pos += 1
+                blink = True  # Show cursor immediately when moving
+                last_blink_time = now
             elif key.code == term.KEY_UP:
                 if history_index > 0:
                     history_index -= 1
@@ -224,10 +237,17 @@ def blessed_input_prompt(prompt_str):
                 buffer.insert(cursor_pos, key)
                 cursor_pos += 1
 
+            if now - last_blink_time > 0.5:
+                blink = not blink
+                last_blink_time = now
+
             visible_input = "".join(buffer)
             print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{visible_input}", end="", flush=True)
-            cursor_char = buffer[cursor_pos] if cursor_pos < len(buffer) else " "
-            print(term.move_x(len(prompt_str) + cursor_pos) + term.reverse(cursor_char), end="", flush=True)
+            print(term.move_x(len(prompt_str) + cursor_pos), end="", flush=True)
+            if blink:
+                print(term.reverse(buffer[cursor_pos] if cursor_pos < len(buffer) else " "), end="", flush=True)
+            else:
+                print(buffer[cursor_pos] if cursor_pos < len(buffer) else " ", end="", flush=True)
 
 
 def main():
