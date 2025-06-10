@@ -59,8 +59,6 @@ current_dir = os.getcwd()
 prev_dir = None
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SHELL COMPLETER
 class ShellCompleter(Completer):
     def get_completions(self, document, complete_event):
         global current_dir
@@ -144,7 +142,10 @@ def run_and_capture_output(cmd: str, cwd: str):
 
 def execute_ai_term_command(cmd: str):
     response: AssistantMsg = terminal_bot.chat(UserMsg(content=cmd))
-    if response.content_parsed:
+    generated_cmd = None
+    if response.content_parsed and hasattr(response.content_parsed, "valid_terminal_command"):
+        generated_cmd = response.content_parsed.valid_terminal_command
+    if generated_cmd:
         generated_cmd = response.content_parsed.valid_terminal_command
         console.print(f"💡 [bold yellow]AI Suggestion:[/bold yellow] `{generated_cmd}`")
         confirm = input("⚠️ Run this command? [y/N]: ").strip().lower()
@@ -171,8 +172,10 @@ def execute_ai_question(question: str):
 
 def execute_code_gen_request(request: str):
     response: AssistantMsg = code_bot.chat(UserMsg(content=request))
-    if response.content_parsed:
+    code = None
+    if response.content_parsed and hasattr(response.content_parsed, "python_code"):
         code = response.content_parsed.python_code
+    if code:
         pyperclip.copy(code)
         console.print(Markdown(code))
         console.print("✅ Copied to clipboard.")
