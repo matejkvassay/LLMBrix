@@ -6,5 +6,5 @@ class UserMsg(Msg):
     Message containing response from user.
     """
 
-    content: str
+    content: str  # input from user
     role: str = "user"

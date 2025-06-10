@@ -15,7 +15,7 @@ from rich.markdown import Markdown
 from llmbrix.agent import Agent
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
-from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
+from llmbrix.msg import AssistantMsg, UserMsg
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG
@@ -30,6 +30,7 @@ TERMINAL_SYS_PROMPT = (
 
 console = Console()
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # AI SETUP
 
@@ -38,21 +39,26 @@ class TerminalCommand(BaseModel):
     valid_terminal_command: str
 
 
-chat_history_terminal = ChatHistory(max_turns=3)
-chat_history_terminal.add(SystemMsg(content=TERMINAL_SYS_PROMPT))
+class GeneratedCode(BaseModel):
+    python_code: str
 
-gpt = GptOpenAI(model=MODEL)
 
 ai_bot = Agent(
-    gpt=gpt,
+    gpt=GptOpenAI(model=MODEL),
     chat_history=ChatHistory(max_turns=5),
     system_msg="You are a concise assistant for use inside a narrow terminal window.",
 )
 
 code_bot = Agent(
-    gpt=gpt,
+    gpt=GptOpenAI(model=MODEL, output_format=GeneratedCode),
     chat_history=ChatHistory(max_turns=5),
     system_msg="You only respond with valid Python code. No explanations.",
+)
+
+terminal_bot = Agent(
+    gpt=GptOpenAI(model=MODEL, output_format=TerminalCommand),
+    chat_history=ChatHistory(max_turns=5),
+    system_msg=TERMINAL_SYS_PROMPT,
 )
 
 
@@ -147,14 +153,13 @@ def run_and_capture_output(cmd: str, cwd: str):
 
 
 def execute_ai_term_command(cmd: str):
-    chat_history_terminal.add(UserMsg(content=cmd))
-    response = gpt.generate_structured(messages=chat_history_terminal.get(), output_format=TerminalCommand)
-    suggestion = response.valid_terminal_command
+    # chat_history_terminal.add(UserMsg(content=cmd))
+    # response = gpt.generate_structured(messages=chat_history_terminal.get(), output_format=TerminalCommand)
+    response: AssistantMsg = terminal_bot.chat(UserMsg(content=cmd))
+    suggestion = response.content_parsed.valid_terminal_command
 
     # # # Show structured response as Markdown
     # console.print(Markdown(f"```bash\n{response.model_dump_json(indent=2)}\n```"))
-
-    chat_history_terminal.add(AssistantMsg(content=str(response.model_dump(mode="json"))))
 
     if suggestion:
         console.print(f"💡 [bold yellow]AI Suggestion:[/bold yellow] `{suggestion}`")
@@ -165,7 +170,7 @@ def execute_ai_term_command(cmd: str):
             return_code, stdout, stderr = run_and_capture_output(suggestion, current_dir)
             if return_code == 0:
                 summary = (stdout or stderr)[:200]
-                chat_history_terminal.add(AssistantMsg(content=f"Command returned: {summary}"))
+                terminal_bot.chat_history.add(AssistantMsg(content=f"Command returned: {summary}"))
                 console.print("✅ ")
         else:
             console.print("❌  Cancelled.")
@@ -176,16 +181,17 @@ def execute_ai_term_command(cmd: str):
 def execute_ai_question(question: str):
     result = ai_bot.chat(UserMsg(content=question)).content
     console.print(Markdown(result))
-    return
 
 
 def execute_code_gen_request(request: str):
-    result = code_bot.chat(UserMsg(content=request)).content
-    pyperclip.copy(result)
-    console.print(Markdown(result))
-    console.print("✅ Copied to clipboard.")
-    # TODO make the output of tool structured
-    return
+    response: AssistantMsg = code_bot.chat(UserMsg(content=request))
+    if response.content_parsed:
+        code = response.content_parsed.python_code
+        pyperclip.copy(code)
+        console.print(Markdown(code))
+        console.print("✅ Copied to clipboard.")
+    else:
+        console.print("❌ Failed to generate code.")
 
 
 def execute_command(cmd: str):

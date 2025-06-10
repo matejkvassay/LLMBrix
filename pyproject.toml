@@ -8,7 +8,7 @@ authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
 description = "Low abstraction agentic LLM framework."
-version = "0.1.0a6"
+version = "0.1.0a7"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

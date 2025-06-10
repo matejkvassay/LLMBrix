@@ -14,4 +14,6 @@ gpt = GptOpenAI(model=MODEL)
 response = gpt.generate(messages)
 
 messages.append(response.message)
-print(messages)
+for m in messages:
+    print(f"\n\n{m.role.upper()}:")
+    print(m.content)

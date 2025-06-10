@@ -7,5 +7,5 @@ class SystemMsg(Msg):
     the chatbot.
     """
 
-    content: str
+    content: str  # system prompt content
     role: str = "system"

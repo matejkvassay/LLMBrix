@@ -1,87 +1,134 @@
-from typing import Optional, Type, TypeVar
+import json
+from typing import Optional, Type, TypeVar, cast
 
 from openai import OpenAI
 from openai.types.responses import ResponseFunctionToolCall
 from pydantic import BaseModel
 
+from llmbrix.exceptions import OpenAIResponseError
+from llmbrix.gpt_response import GptResponse
 from llmbrix.msg import AssistantMsg, Msg, ToolRequestMsg
 from llmbrix.tool import Tool
 
 T = TypeVar("T", bound=BaseModel)
-
-
-class GptResponse(BaseModel):
-    """
-    Response from a GPT model used for non-structured LLM outputs.
-    Contains assistant message and list of tool calls (potentially empty list).
-    """
-
-    message: AssistantMsg
-    tool_calls: list[ToolRequestMsg]
+DEFAULT_TIMEOUT = 60
 
 
 class GptOpenAI:
     """
     Wraps OpenAI GPT responses API.
-    Enables to generate tokens using GPT LLM models.
-
-    For unstructured responses and tool calls use:
-    `generate()`
-
-    For structured LLM output use:
-    `generate_structured()`
 
     Expects "OPENAI_API_KEY=<your token>" env variable to be set.
     """
 
-    def __init__(self, model: str):
+    def __init__(
+        self,
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = DEFAULT_TIMEOUT,
+        **responses_kwargs,
+    ):
         """
-        :param model: str model name
+        Parameters passed here will be set as defaults.
+
+        Any value passed to these parameters in `generate()` will override these defaults.
+
+        Note `model` has to be set either here or in `generate()` function.
+
+        :param model: name of GPT model to use
+        :param tools: (optional) list of Tool child instances to register to LLM as tools to be used
+        :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
+        :param api_timeout: timeout for OpenAI API in seconds. Default is 60s
+        :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
+                                 Note if output format is defined responses.parse is used.
+
         """
         self.model = model
+        self.tools = tools
+        self.output_format = output_format
+        self.api_timeout = api_timeout
+        self.responses_kwargs = responses_kwargs
         self.client = OpenAI()
 
-    def generate(self, messages: list[Msg], tools: list[Tool] = None) -> GptResponse:
+    def __call__(self, *args, **kwargs) -> GptResponse:
         """
-        Generates response from LLM.
-        Tool calls are supported.
-        Structured outputs are not supported when passing tools (without tools use "generate_structured()" method).
+        Calls `generate()` method with provided args and kwargs.
+
+        See docstring of `generate()` for supported args and kwargs values and return and raises info.
+        """
+        return self.generate(*args, **kwargs)
+
+    def generate(
+        self,
+        messages: list[Msg],
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = None,
+        **responses_kwargs,
+    ) -> GptResponse:
+        """
+        Generates response from LLM. Supports tool calls and structured outputs.
+
+        All parameters except messages can also be set in __init__() to define defaults.
+        If provided here, they override those defaults.
 
         :param messages: list of messages for LLM to be used as input.
+        :param model: name of GPT model to use
         :param tools: (optional) list of Tool child instances to register to LLM as tools to be used
+        :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
+        :param api_timeout: timeout for OpenAI API in seconds. Default is set to 60s.
+        :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
+                                 Note if output format is defined responses.parse is used.
+                                 If output format is not defined responses.create is used.
 
         :return: GptResponse object (contains AssistantMsg and tool calls list).
+
+        :raises OpenAIResponseError: if an error field is returned from OpenAI responses API call
         """
+        model = model or self.model
+        tools = tools or self.tools
+        output_format = output_format or self.output_format
+        api_timeout = self.api_timeout if api_timeout is None else api_timeout
+        responses_kwargs = {**self.responses_kwargs, **responses_kwargs}
+        if not model:
+            raise ValueError(
+                "No model name has been provided. Either set default model name in __init__() or pass "
+                "it into this function."
+            )
+
         messages = [m.to_openai() for m in messages]
-        if tools is not None:
-            tools = [t.openai_schema for t in tools]
+        tool_schemas = [t.openai_schema for t in tools] if tools else []
+
+        if output_format is None:
+            response = self.client.responses.create(
+                input=messages, model=model, tools=tool_schemas, timeout=api_timeout, **responses_kwargs
+            )
         else:
-            tools = []
-        response = self.client.responses.create(input=messages, model=self.model, tools=tools)
+            response = self.client.responses.parse(
+                input=messages,
+                model=model,
+                tools=tool_schemas,
+                text_format=output_format,
+                timeout=api_timeout,
+                **responses_kwargs,
+            )
         if response.error:
-            raise RuntimeError(
-                f"Error during OpenAI API cal: " f"code={response.error}, " f'msg="{response.error.message}"'
+            raise OpenAIResponseError(
+                f"OpenAI API error — code: {getattr(response.error, 'code', 'unknown')}, "
+                f"message: {getattr(response.error, 'message', 'No message provided')}"
             )
         tool_call_requests = [
             ToolRequestMsg.from_openai(t) for t in response.output if isinstance(t, ResponseFunctionToolCall)
         ]
-        return GptResponse(message=AssistantMsg(content=response.output_text), tool_calls=tool_call_requests)
 
-    def generate_structured(self, messages: list[Msg], output_format: Type[T]) -> Optional[T]:
-        """
-        Generate response with LLM.
-        Uses structured output - LLM output is formatted into specific Pydantic model pass in "output_format".
-        Tool calls are not supported when using structured outputs.
+        if output_format is None:
+            assistant_msg = AssistantMsg(content=response.output_text)
 
-        :param messages: list of messages for LLM to be used as input.
-        :param output_format: Pydantic BaseModel instance.
+        else:
+            parsed = cast(Optional[T], response.output_parsed)
+            content = json.dumps(parsed.model_dump(mode="json")) if parsed else None
+            assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
 
-        :return: Filled BaseModel instance or None if generation failed.
-        """
-        messages = [m.to_openai() for m in messages]
-        response = self.client.responses.parse(input=messages, model=self.model, text_format=output_format)
-        if response.error:
-            raise RuntimeError(
-                f"Error during OpenAI API cal: " f"code={response.error}, " f'msg="{response.error.message}"'
-            )
-        return response.output_parsed
+        return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)

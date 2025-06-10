@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
+from llmbrix.msg.constants import OPENAI_EXCLUDED_FIELDS
+
 
 class Msg(BaseModel):
     """
@@ -17,5 +19,4 @@ class Msg(BaseModel):
 
         :return: OpenAI API - compatible dict representing message.
         """
-        exclude = ["meta"]
-        return self.model_dump(exclude=set(exclude))
+        return self.model_dump(exclude=OPENAI_EXCLUDED_FIELDS)

@@ -31,7 +31,7 @@ class Agent:
         :param system_msg: System message to set up general agent instructions.
                            Optional but highly recommended.
                            Ignored if chat_history passed already contains some messages.
-                           If str its automatically transformed to SystemMsg instance.
+                           If str is passed it's automatically transformed to SystemMsg instance.
         :param tools: List of tools to register to the chatbot agent. Agent will decide on its own to use these tools
                       when needed to answer user's question.
         :param max_tool_call_iter: Maximum number of tool call loops Agent is allowed to do.

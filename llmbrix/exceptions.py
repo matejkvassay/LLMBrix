@@ -4,3 +4,9 @@ class PromptRenderError(Exception):
     """
 
     pass
+
+
+class OpenAIResponseError(Exception):
+    """
+    Raised when OpenAI API call fails and returns error field instead of a response.
+    """
