@@ -201,12 +201,13 @@ def blessed_input_prompt(prompt_str: str) -> str:
             now = time.time()
             k = term.inkey(timeout=0.1)
             if k.code in (term.KEY_ENTER, term.KEY_RETURN):
-                print(term.move_x(0) + term.clear_eol, end="", flush=True)
+                # Echo the entered command and move to the next line, rather than clearing it
+                print()
                 return "".join(buffer)
             if k.code == term.KEY_BACKSPACE and cursor > 0:
                 del buffer[cursor - 1]
                 cursor -= 1
-            elif k.code == term.KEY_DELETE and cursor < len(buffer):  # added delete support
+            elif k.code == term.KEY_DELETE and cursor < len(buffer):
                 del buffer[cursor]
             elif k.code == term.KEY_LEFT and cursor > 0:
                 cursor -= 1
@@ -259,7 +260,7 @@ def blessed_input_prompt(prompt_str: str) -> str:
                 blink = not blink
                 last = now
             vis = "".join(buffer)
-            # Redraw line and clear to end to avoid artifacts from previous longer input
+            # Redraw line and clear to end to avoid artifacts
             print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{vis}", end="", flush=True)
             print(term.move_x(len(prompt_str) + cursor), end="", flush=True)
             char = buffer[cursor] if cursor < len(buffer) else " "
@@ -267,7 +268,6 @@ def blessed_input_prompt(prompt_str: str) -> str:
                 print(term.reverse(char), end="", flush=True)
             else:
                 print(char, end="", flush=True)
-            # Clear any remaining characters beyond current cursor to prevent stuck artifacts
             print(term.clear_eol, end="", flush=True)
 
 
