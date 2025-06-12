@@ -172,7 +172,7 @@ def execute_command(cmd: str):
         execute_code_gen_request(cmd[2:])
     else:
         code, out, err = run_and_capture_output(cmd, current_dir)
-        if code != 0:
+        if code != 0 and not err.strip():
             execute_ai_term_command(cmd)
 
 
