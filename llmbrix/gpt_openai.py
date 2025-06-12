@@ -1,7 +1,7 @@
 import json
 from typing import Optional, Type, TypeVar, cast
 
-from openai import OpenAI, AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 from openai.types.responses import ResponseFunctionToolCall
 from pydantic import BaseModel
 
@@ -20,13 +20,13 @@ class GptOpenAI:
     """
 
     def __init__(
-            self,
-            model: str = None,
-            tools: list[Tool] = None,
-            output_format: Optional[Type[T]] = None,
-            api_timeout: int = DEFAULT_TIMEOUT,
-            openai_client: OpenAI | AzureOpenAI = None,
-            **responses_kwargs
+        self,
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = DEFAULT_TIMEOUT,
+        openai_client: OpenAI | AzureOpenAI = None,
+        **responses_kwargs,
     ):
         """
         Parameters passed here will be set as defaults.
@@ -80,13 +80,13 @@ class GptOpenAI:
         return self.generate(*args, **kwargs)
 
     def generate(
-            self,
-            messages: list[Msg],
-            model: str = None,
-            tools: list[Tool] = None,
-            output_format: Optional[Type[T]] = None,
-            api_timeout: int = None,
-            **responses_kwargs,
+        self,
+        messages: list[Msg],
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = None,
+        **responses_kwargs,
     ) -> GptResponse:
         """
         Generates response from LLM. Supports tool calls and structured outputs.
