@@ -74,11 +74,11 @@ def save_to_history(cmd):
 def complete_path(token):
     # Provide file/folder tab completion
     if os.path.sep in token:
-        dirpart, base = os.path.split(token)
-        search_dir = os.path.join(current_dir, dirpart)
+        dir_part, base = os.path.split(token)
+        search_dir = os.path.join(current_dir, dir_part)
         pattern = os.path.join(search_dir, base + "*")
         matches = glob.glob(pattern)
-        return [os.path.join(dirpart, os.path.basename(m)) for m in matches]
+        return [os.path.join(dir_part, os.path.basename(m)) for m in matches]
     else:
         pattern = os.path.join(current_dir, token + "*")
         matches = glob.glob(pattern)
@@ -116,12 +116,15 @@ def run_and_capture_output(cmd: str, cwd: str):
             return code, "", ""
         proc = subprocess.Popen(cmd, shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         out, err = proc.communicate()
-        if out:
-            console.print(out, style="green")
-        if err:
-            style = "green" if proc.returncode == 0 else "bold red"
-            console.print(err, style=style)
+
+        if out.strip():
+            console.print(out.strip(), style="green")
+        if err.strip():
+            style = "yellow" if proc.returncode == 0 else "bold red"
+            console.print(err.strip(), style=style)
+
         return proc.returncode, out, err
+
     except FileNotFoundError:
         console.print(f"[bold red]❌ Command not found:[/bold red] {cmd}")
         return 127, "", ""
