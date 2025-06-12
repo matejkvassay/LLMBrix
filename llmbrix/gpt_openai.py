@@ -1,7 +1,8 @@
+import os
 import json
 from typing import Optional, Type, TypeVar, cast
 
-from openai import OpenAI
+from openai import OpenAI, AzureOpenAI
 from openai.types.responses import ResponseFunctionToolCall
 from pydantic import BaseModel
 
@@ -17,17 +18,16 @@ DEFAULT_TIMEOUT = 60
 class GptOpenAI:
     """
     Wraps OpenAI GPT responses API.
-
-    Expects "OPENAI_API_KEY=<your token>" env variable to be set.
     """
 
     def __init__(
-        self,
-        model: str = None,
-        tools: list[Tool] = None,
-        output_format: Optional[Type[T]] = None,
-        api_timeout: int = DEFAULT_TIMEOUT,
-        **responses_kwargs,
+            self,
+            model: str = None,
+            tools: list[Tool] = None,
+            output_format: Optional[Type[T]] = None,
+            api_timeout: int = DEFAULT_TIMEOUT,
+            openai_client: OpenAI | AzureOpenAI = None,
+            **responses_kwargs
     ):
         """
         Parameters passed here will be set as defaults.
@@ -36,10 +36,28 @@ class GptOpenAI:
 
         Note `model` has to be set either here or in `generate()` function.
 
+        If no `openai_client` then `OPENAI_API_KEY` env variable must be set in order to
+        initialize default OpenAI client.
+
         :param model: name of GPT model to use
         :param tools: (optional) list of Tool child instances to register to LLM as tools to be used
         :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
         :param api_timeout: timeout for OpenAI API in seconds. Default is 60s
+        :param openai_client: (optional) Specify custom OpenAI/AzureOpenAI client to be used.
+                              If none provided then default OpenAI() client is initialized.
+
+                              Example: Initialize AzureOpenAI client:
+
+                              ```python
+                                import os
+                                from openai import AzureOpenAI
+
+                                client = AzureOpenAI(
+                                    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                                    api_version="2024-07-01-preview",
+                                    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
+                                )
+                              ```
         :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
                                  Note if output format is defined responses.parse is used.
 
@@ -49,7 +67,10 @@ class GptOpenAI:
         self.output_format = output_format
         self.api_timeout = api_timeout
         self.responses_kwargs = responses_kwargs
-        self.client = OpenAI()
+        if openai_client is not None:
+            self.client = openai_client
+        else:
+            self.client = OpenAI()
 
     def __call__(self, *args, **kwargs) -> GptResponse:
         """
@@ -60,13 +81,13 @@ class GptOpenAI:
         return self.generate(*args, **kwargs)
 
     def generate(
-        self,
-        messages: list[Msg],
-        model: str = None,
-        tools: list[Tool] = None,
-        output_format: Optional[Type[T]] = None,
-        api_timeout: int = None,
-        **responses_kwargs,
+            self,
+            messages: list[Msg],
+            model: str = None,
+            tools: list[Tool] = None,
+            output_format: Optional[Type[T]] = None,
+            api_timeout: int = None,
+            **responses_kwargs,
     ) -> GptResponse:
         """
         Generates response from LLM. Supports tool calls and structured outputs.
