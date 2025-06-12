@@ -33,7 +33,6 @@ class GeneratedCode(BaseModel):
     python_code: str
 
 
-# Initialize AI agents
 ai_bot = Agent(
     gpt=GptOpenAI(model=MODEL),
     chat_history=ChatHistory(max_turns=5),
@@ -57,7 +56,6 @@ term = Terminal()
 current_dir = os.getcwd()
 prev_dir = None
 
-# Load history
 if os.path.exists(HIST_FILE):
     readline.read_history_file(HIST_FILE)
 else:
@@ -72,7 +70,6 @@ def save_to_history(cmd):
 
 
 def complete_path(token):
-    # Provide file/folder tab completion
     if os.path.sep in token:
         dir_part, base = os.path.split(token)
         search_dir = os.path.join(current_dir, dir_part)
@@ -85,7 +82,6 @@ def complete_path(token):
         return [os.path.basename(m) for m in matches]
 
 
-# Command execution pipeline
 def execute_cd_command(cmd: str, allow_ai=True):
     global prev_dir, current_dir
     path = cmd[3:].strip()
@@ -180,7 +176,7 @@ def execute_command(cmd: str):
             execute_ai_term_command(cmd)
 
 
-def read_multiline_input(prompt: str) -> str:
+def read_multiline_input() -> str:
     console.print("[grey42](Paste your input. Press Ctrl-D on empty line to finish.)[/grey42]")
     lines = []
     try:
@@ -189,9 +185,6 @@ def read_multiline_input(prompt: str) -> str:
     except EOFError:
         pass
     return "\n".join(lines)
-
-
-# Input loop with tab-complete and history
 
 
 def blessed_input_prompt(prompt_str: str) -> str:
@@ -213,6 +206,8 @@ def blessed_input_prompt(prompt_str: str) -> str:
             if k.code == term.KEY_BACKSPACE and cursor > 0:
                 del buffer[cursor - 1]
                 cursor -= 1
+            elif k.code == term.KEY_DELETE and cursor < len(buffer):  # ✅ add this
+                del buffer[cursor]
             elif k.code == term.KEY_LEFT and cursor > 0:
                 cursor -= 1
                 blink = True
@@ -239,12 +234,12 @@ def blessed_input_prompt(prompt_str: str) -> str:
             elif k.code == term.KEY_TAB:
                 pre = "".join(buffer[:cursor])
                 parts = pre.split()
-                lasttok = parts[-1] if parts else ""
-                matches = complete_path(lasttok)
+                last_tok = parts[-1] if parts else ""
+                matches = complete_path(last_tok)
                 if matches:
                     if len(matches) == 1:
                         sug = matches[0]
-                        start = pre.rfind(lasttok)
+                        start = pre.rfind(last_tok)
                         new = pre[:start] + sug
                         buffer = list(new) + buffer[cursor:]
                         cursor = len(new)
@@ -272,9 +267,6 @@ def blessed_input_prompt(prompt_str: str) -> str:
                 print(char, end="", flush=True)
 
 
-# Main loop
-
-
 def run():
     console.print(
         "\n[bold green]🚀 Welcome to [underline]AI Terminal[/underline][bold green] (Blessed-based)[/bold green]\n"
@@ -286,7 +278,7 @@ def run():
             if cmd in {"exit", "quit", "q", "e"}:
                 break
             if cmd.startswith("a ") or cmd == "a":
-                full = read_multiline_input(prompt) if cmd == "a" else cmd[2:]
+                full = read_multiline_input() if cmd == "a" else cmd[2:]
                 if full:
                     execute_ai_question(full)
             elif cmd:
