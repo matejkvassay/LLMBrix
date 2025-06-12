@@ -33,6 +33,7 @@ class GeneratedCode(BaseModel):
     python_code: str
 
 
+# Correct naming: ai_bot
 ai_bot = Agent(
     gpt=GptOpenAI(model=MODEL),
     chat_history=ChatHistory(max_turns=5),
@@ -196,14 +197,18 @@ def blessed_input_prompt(prompt_str: str) -> str:
     last = time.time()
 
     with term.cbreak(), term.hidden_cursor():
-        print(term.move_x(0) + term.clear_eol + term.bold_blue(prompt_str), end="", flush=True)
+        print(
+            term.move_x(0) + term.clear_eol + term.bold_blue(prompt_str),
+            end="",
+            flush=True,
+        )
         while True:
             now = time.time()
             k = term.inkey(timeout=0.1)
             if k.code in (term.KEY_ENTER, term.KEY_RETURN):
-                # Echo the entered command and move to the next line, rather than clearing it
+                # Echo the entered command and exit input loop
                 print()
-                return "".join(buffer)
+                break
             if k.code == term.KEY_BACKSPACE and cursor > 0:
                 del buffer[cursor - 1]
                 cursor -= 1
@@ -255,20 +260,26 @@ def blessed_input_prompt(prompt_str: str) -> str:
                 buffer.insert(cursor, k)
                 cursor += 1
 
-            # Blink cursor
+            # Blink logic
             if now - last > 0.5:
                 blink = not blink
                 last = now
             vis = "".join(buffer)
-            # Redraw line and clear to end to avoid artifacts
-            print(f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{vis}", end="", flush=True)
+            # Redraw line
+            print(
+                f"\r{term.move_x(0)}{term.clear_eol}{term.bold_blue(prompt_str)}{vis}",
+                end="",
+                flush=True,
+            )
             print(term.move_x(len(prompt_str) + cursor), end="", flush=True)
             char = buffer[cursor] if cursor < len(buffer) else " "
             if blink:
                 print(term.reverse(char), end="", flush=True)
             else:
                 print(char, end="", flush=True)
-            print(term.clear_eol, end="", flush=True)
+
+    # Return the collected buffer as string
+    return "".join(buffer)
 
 
 def run():
