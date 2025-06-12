@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
-    "Development Status :: 3 - Alpha",  # Consider 4 - Beta or 5 - Production/Stable as it matures
+    "Development Status :: 3 - Alpha", # Consider 4 - Beta or 5 - Production/Stable as it matures
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries"
 ]
@@ -41,6 +41,14 @@ dev = [
     "build",
     "twine"
 ]
+term = [
+    "blessed",
+    "rich",
+    "pyperclip"
+]
+
+[project.scripts]
+brix-term = "llmbrix.apps.terminal.main:main"
 
 [tool.setuptools]
 include-package-data = true

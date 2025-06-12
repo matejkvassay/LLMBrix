@@ -272,7 +272,7 @@ def blessed_input_prompt(prompt_str: str) -> str:
 # Main loop
 
 
-def main():
+def run():
     console.print(
         "\n[bold green]🚀 Welcome to [underline]AI Terminal[/underline][bold green] (Blessed-based)[/bold green]\n"
     )
@@ -294,7 +294,3 @@ def main():
         except EOFError:
             print()
             break
-
-
-if __name__ == "__main__":
-    main()

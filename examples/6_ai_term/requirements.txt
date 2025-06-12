@@ -1,4 +1,0 @@
-blessed
-rich
-llmbrix
-pyperclip
