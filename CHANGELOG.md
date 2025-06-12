@@ -1,3 +1,7 @@
+# [2025/06/12]
+
+- option to specify custom `OpenAI` or `AzureOpenAI` client in `GptOpenAI` wrapper
+
 # [2025/06/09]
 
 - refactor of `GptOpenai` class
