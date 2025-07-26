@@ -104,6 +104,8 @@ class GptOpenAI:
                                  If output format is not defined responses.create is used.
 
         :return: GptResponse object (contains AssistantMsg and tool calls list).
+                 In case LLM requests tool calls AssistantMsg might be None.
+                 In case there is no tool calls the tool_calls field will be None.
 
         :raises OpenAIResponseError: if an error field is returned from OpenAI responses API call
         """
@@ -150,5 +152,10 @@ class GptOpenAI:
             parsed = cast(Optional[T], response.output_parsed)
             content = json.dumps(parsed.model_dump(mode="json")) if parsed else None
             assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
-
+        if not assistant_msg.content:
+            assistant_msg = None
+        if not tool_call_requests:
+            tool_call_requests = None
+        if assistant_msg is None and tool_call_requests is None:
+            raise RuntimeError("Request unsuccessful. Neither tool call nor assistant message was returned by LLM.")
         return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)

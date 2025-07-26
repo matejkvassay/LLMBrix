@@ -1,3 +1,8 @@
+# [2025/07/26]
+
+- fixed bug when `AssistantMsg` with None content was added to history when tool calling in structured output `Agent`
+- added support for `Arize Phoenix` tracing
+
 # [2025/06/12]
 
 - option to specify custom `OpenAI` or `AzureOpenAI` client in `GptOpenAI` wrapper

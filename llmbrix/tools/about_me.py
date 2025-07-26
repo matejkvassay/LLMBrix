@@ -3,6 +3,9 @@ from typing import Callable
 from llmbrix.prompt import Prompt
 from llmbrix.tool import Tool
 from llmbrix.tool_output import ToolOutput
+from llmbrix.tracing import get_tracer
+
+tracer = get_tracer()
 
 NAME = "get_info_about_me"
 DESC = "Get information about this chatbot."
@@ -35,6 +38,7 @@ class AboutMe(Tool):
 
         super().__init__(name=tool_name, desc=tool_desc)
 
+    @tracer.tool(name=NAME, description=DESC)
     def exec(self) -> ToolOutput:
         """
         Returns info about the chatbot.

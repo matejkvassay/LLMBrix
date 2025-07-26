@@ -2,6 +2,9 @@ from datetime import datetime
 
 from llmbrix.tool import Tool
 from llmbrix.tool_output import ToolOutput
+from llmbrix.tracing import get_tracer
+
+tracer = get_tracer()
 
 DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 NAME = "get_current_datetime"
@@ -26,6 +29,7 @@ class GetDatetime(Tool):
         self.datetime_fmt = datetime_fmt
         super().__init__(name=tool_name, desc=tool_desc)
 
+    @tracer.tool(name=NAME, description=DESC)
     def exec(self) -> ToolOutput:
         """
         Get current datetime in str format.

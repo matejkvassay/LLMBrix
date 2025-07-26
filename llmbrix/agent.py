@@ -3,6 +3,9 @@ from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
 from llmbrix.tool import Tool
 from llmbrix.tool_executor import ToolExecutor
+from llmbrix.tracing import get_tracer
+
+tracer = get_tracer()
 
 
 class Agent:
@@ -48,6 +51,7 @@ class Agent:
             self.tool_executor = ToolExecutor(tools=tools)
         self.max_tool_call_iter = max_tool_call_iter
 
+    @tracer.chain(name="Agent.chat")
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
         """
         Executes new turn of conversation.
@@ -60,12 +64,15 @@ class Agent:
 
         for _ in range(self.max_tool_call_iter):
             gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
-            self.chat_history.add(gpt_response.message)
-            if not gpt_response.tool_calls:
+            if gpt_response.message is None and gpt_response.tool_calls is None:
+                raise RuntimeError("Request failed, both LLM message and tool calls are empty.")
+            if gpt_response.message and gpt_response.tool_calls is None:
+                self.chat_history.add(gpt_response.message)
                 return gpt_response.message
-            self.chat_history.add_many(gpt_response.tool_calls)
-            tool_output_msgs = self.tool_executor(gpt_response.tool_calls)
-            self.chat_history.add_many(tool_output_msgs)
+            if gpt_response.tool_calls:
+                self.chat_history.add_many(gpt_response.tool_calls)
+                tool_output_msgs = self.tool_executor(gpt_response.tool_calls)
+                self.chat_history.add_many(tool_output_msgs)
 
         gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=None)
         self.chat_history.add(gpt_response.message)
