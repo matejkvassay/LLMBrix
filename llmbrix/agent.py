@@ -1,8 +1,11 @@
+from llmbrix.tracing import get_tracer
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
 from llmbrix.tool import Tool
 from llmbrix.tool_executor import ToolExecutor
+
+tracer = get_tracer()
 
 
 class Agent:
@@ -48,6 +51,7 @@ class Agent:
             self.tool_executor = ToolExecutor(tools=tools)
         self.max_tool_call_iter = max_tool_call_iter
 
+    @tracer.chain(name="Agent.chat")
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
         """
         Executes new turn of conversation.
