@@ -20,13 +20,13 @@ class GptOpenAI:
     """
 
     def __init__(
-        self,
-        model: str = None,
-        tools: list[Tool] = None,
-        output_format: Optional[Type[T]] = None,
-        api_timeout: int = DEFAULT_TIMEOUT,
-        openai_client: OpenAI | AzureOpenAI = None,
-        **responses_kwargs,
+            self,
+            model: str = None,
+            tools: list[Tool] = None,
+            output_format: Optional[Type[T]] = None,
+            api_timeout: int = DEFAULT_TIMEOUT,
+            openai_client: OpenAI | AzureOpenAI = None,
+            **responses_kwargs,
     ):
         """
         Parameters passed here will be set as defaults.
@@ -80,13 +80,13 @@ class GptOpenAI:
         return self.generate(*args, **kwargs)
 
     def generate(
-        self,
-        messages: list[Msg],
-        model: str = None,
-        tools: list[Tool] = None,
-        output_format: Optional[Type[T]] = None,
-        api_timeout: int = None,
-        **responses_kwargs,
+            self,
+            messages: list[Msg],
+            model: str = None,
+            tools: list[Tool] = None,
+            output_format: Optional[Type[T]] = None,
+            api_timeout: int = None,
+            **responses_kwargs,
     ) -> GptResponse:
         """
         Generates response from LLM. Supports tool calls and structured outputs.
@@ -104,6 +104,8 @@ class GptOpenAI:
                                  If output format is not defined responses.create is used.
 
         :return: GptResponse object (contains AssistantMsg and tool calls list).
+                 In case LLM requests tool calls AssistantMsg might be None.
+                 In case there is no tool calls the tool_calls field will be None.
 
         :raises OpenAIResponseError: if an error field is returned from OpenAI responses API call
         """
@@ -150,5 +152,10 @@ class GptOpenAI:
             parsed = cast(Optional[T], response.output_parsed)
             content = json.dumps(parsed.model_dump(mode="json")) if parsed else None
             assistant_msg = AssistantMsg(content=content, content_parsed=parsed)
-
+        if not assistant_msg.content:
+            assistant_msg = None
+        if not tool_call_requests:
+            tool_call_requests = None
+        if assistant_msg is None and tool_call_requests is None:
+            raise RuntimeError('Request unsuccessful. Neither tool call nor assistant message was returned by LLM.')
         return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)

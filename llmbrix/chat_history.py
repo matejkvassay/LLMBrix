@@ -13,13 +13,7 @@ class ChatHistory:
     - automatically removes oldest conversation turns as new ones above "max_turns" limit are added
     - keeps system message always as first message in the chat history (if system message provided)
 
-    Note on FIFO message trimming:
-        - this strategy of history trimming might not be optimal for caching
-        - adding new conversation turn above limit of "max_turns" results in immediate
-          removal of oldest conversation turn
-        - for caching it's necessary to leave the oldest messages for as long as possible and then
-          suddenly trim multiple outdated messages (see caching in OpenAI docs)
-        - there is tradeoff though because even though it makes cached tokens cheaper you still pay for them
+    Note this strategy of history trimming might not optimally leverage OpenAI API caching.
     """
 
     def __init__(self, max_turns: int = 5):

@@ -16,12 +16,12 @@ class Agent:
     """
 
     def __init__(
-        self,
-        gpt: GptOpenAI,
-        chat_history: ChatHistory,
-        system_msg: SystemMsg = None,
-        tools: list[Tool] | None = None,
-        max_tool_call_iter=1,
+            self,
+            gpt: GptOpenAI,
+            chat_history: ChatHistory,
+            system_msg: SystemMsg = None,
+            tools: list[Tool] | None = None,
+            max_tool_call_iter=1,
     ):
         """
         :param gpt: Instance of GptOpenAI LLM wrapper.
@@ -60,12 +60,15 @@ class Agent:
 
         for _ in range(self.max_tool_call_iter):
             gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
-            self.chat_history.add(gpt_response.message)
-            if not gpt_response.tool_calls:
+            if gpt_response.message is None and gpt_response.tool_calls is None:
+                raise RuntimeError('Request failed, both LLM message and tool calls are empty.')
+            if gpt_response.message and gpt_response.tool_calls is None:
+                self.chat_history.add(gpt_response.message)
                 return gpt_response.message
-            self.chat_history.add_many(gpt_response.tool_calls)
-            tool_output_msgs = self.tool_executor(gpt_response.tool_calls)
-            self.chat_history.add_many(tool_output_msgs)
+            if gpt_response.tool_calls:
+                self.chat_history.add_many(gpt_response.tool_calls)
+                tool_output_msgs = self.tool_executor(gpt_response.tool_calls)
+                self.chat_history.add_many(tool_output_msgs)
 
         gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=None)
         self.chat_history.add(gpt_response.message)
