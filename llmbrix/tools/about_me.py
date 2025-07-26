@@ -1,8 +1,9 @@
 from typing import Callable
-from llmbrix.tracing import get_tracer
+
 from llmbrix.prompt import Prompt
 from llmbrix.tool import Tool
 from llmbrix.tool_output import ToolOutput
+from llmbrix.tracing import get_tracer
 
 tracer = get_tracer()
 

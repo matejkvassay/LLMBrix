@@ -1,8 +1,9 @@
 import os
-from llmbrix.tracing import get_tracer
+
 from llmbrix.tool import Tool
 from llmbrix.tool_output import ToolOutput
 from llmbrix.tool_param import ToolParam
+from llmbrix.tracing import get_tracer
 
 tracer = get_tracer()
 

@@ -20,13 +20,13 @@ class GptOpenAI:
     """
 
     def __init__(
-            self,
-            model: str = None,
-            tools: list[Tool] = None,
-            output_format: Optional[Type[T]] = None,
-            api_timeout: int = DEFAULT_TIMEOUT,
-            openai_client: OpenAI | AzureOpenAI = None,
-            **responses_kwargs,
+        self,
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = DEFAULT_TIMEOUT,
+        openai_client: OpenAI | AzureOpenAI = None,
+        **responses_kwargs,
     ):
         """
         Parameters passed here will be set as defaults.
@@ -80,13 +80,13 @@ class GptOpenAI:
         return self.generate(*args, **kwargs)
 
     def generate(
-            self,
-            messages: list[Msg],
-            model: str = None,
-            tools: list[Tool] = None,
-            output_format: Optional[Type[T]] = None,
-            api_timeout: int = None,
-            **responses_kwargs,
+        self,
+        messages: list[Msg],
+        model: str = None,
+        tools: list[Tool] = None,
+        output_format: Optional[Type[T]] = None,
+        api_timeout: int = None,
+        **responses_kwargs,
     ) -> GptResponse:
         """
         Generates response from LLM. Supports tool calls and structured outputs.
@@ -157,5 +157,5 @@ class GptOpenAI:
         if not tool_call_requests:
             tool_call_requests = None
         if assistant_msg is None and tool_call_requests is None:
-            raise RuntimeError('Request unsuccessful. Neither tool call nor assistant message was returned by LLM.')
+            raise RuntimeError("Request unsuccessful. Neither tool call nor assistant message was returned by LLM.")
         return GptResponse(message=assistant_msg, tool_calls=tool_call_requests)

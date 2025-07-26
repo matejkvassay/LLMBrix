@@ -1,9 +1,9 @@
-from llmbrix.tracing import get_tracer
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
 from llmbrix.tool import Tool
 from llmbrix.tool_executor import ToolExecutor
+from llmbrix.tracing import get_tracer
 
 tracer = get_tracer()
 
@@ -19,12 +19,12 @@ class Agent:
     """
 
     def __init__(
-            self,
-            gpt: GptOpenAI,
-            chat_history: ChatHistory,
-            system_msg: SystemMsg = None,
-            tools: list[Tool] | None = None,
-            max_tool_call_iter=1,
+        self,
+        gpt: GptOpenAI,
+        chat_history: ChatHistory,
+        system_msg: SystemMsg = None,
+        tools: list[Tool] | None = None,
+        max_tool_call_iter=1,
     ):
         """
         :param gpt: Instance of GptOpenAI LLM wrapper.
@@ -65,7 +65,7 @@ class Agent:
         for _ in range(self.max_tool_call_iter):
             gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
             if gpt_response.message is None and gpt_response.tool_calls is None:
-                raise RuntimeError('Request failed, both LLM message and tool calls are empty.')
+                raise RuntimeError("Request failed, both LLM message and tool calls are empty.")
             if gpt_response.message and gpt_response.tool_calls is None:
                 self.chat_history.add(gpt_response.message)
                 return gpt_response.message

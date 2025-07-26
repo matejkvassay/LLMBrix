@@ -1,5 +1,7 @@
-from typing import TypeVar, Optional
+from typing import Optional, TypeVar
+
 from pydantic import BaseModel, model_validator
+
 from llmbrix.msg import AssistantMsg, ToolRequestMsg
 
 T = TypeVar("T", bound=BaseModel)
