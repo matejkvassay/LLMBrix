@@ -1,3 +1,8 @@
+# [2025/08/02]
+
+- Easier configuration of `OpenAI` / `AzureOpenAI` clients in `GptOpenAI` class
+- New class methods `from_openai()` & `from_azure_openai` in `GptOpenAI`
+
 # [2025/07/26]
 
 - fixed bug when `AssistantMsg` with None content was added to history when tool calling in structured output `Agent`

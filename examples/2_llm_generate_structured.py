@@ -1,3 +1,6 @@
+import os
+
+from openai import OpenAI
 from pydantic import BaseModel
 
 from llmbrix.gpt_openai import GptOpenAI
@@ -19,7 +22,7 @@ class SelectedColor(BaseModel):
 
 
 messages = [SystemMsg(content=SYSTEM_MSG), UserMsg(content=USER_MSG)]
-gpt = GptOpenAI(model=MODEL)
+gpt = GptOpenAI(model=MODEL, openai_client=OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
 output: GptResponse = gpt.generate(messages, output_format=SelectedColor)
 messages.append(output.message)
 
