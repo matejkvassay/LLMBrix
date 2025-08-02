@@ -1,3 +1,6 @@
+# [2025/08/02]
+- simplified configuration of Arize vs. standard OpenAI client
+
 # [2025/07/26]
 
 - fixed bug when `AssistantMsg` with None content was added to history when tool calling in structured output `Agent`
