@@ -1,5 +1,7 @@
 # [2025/08/02]
-- simplified configuration of Arize vs. standard OpenAI client
+
+- Easier configuration of `OpenAI` / `AzureOpenAI` clients in `GptOpenAI` class
+- New class methods `from_openai()` & `from_azure_openai` in `GptOpenAI`
 
 # [2025/07/26]
 

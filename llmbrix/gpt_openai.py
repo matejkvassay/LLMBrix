@@ -15,7 +15,9 @@ T = TypeVar("T", bound=BaseModel)
 
 class GptOpenAI:
     """
-    Wraps OpenAI GPT responses API.
+    GPT wrapper used to generate tokens via OpenAI API.
+    Supports non-reasoning GPT models, tool calling and structured outputs.
+    Internally uses responses API.
     """
 
     def __init__(
@@ -60,7 +62,7 @@ class GptOpenAI:
                 self.client = AzureOpenAI()
 
     @classmethod
-    def from_openai_cfg(cls, model: str, api_key: str, **kwargs) -> "GptOpenAI":
+    def from_openai(cls, model: str, api_key: str, **kwargs) -> "GptOpenAI":
         """
         Initialize GptOpenAI instance with standard OpenAI API.
 
