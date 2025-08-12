@@ -7,7 +7,7 @@ from llmbrix.msg import SystemMsg, UserMsg
 
 SYSTEM_MSG = "Be super brief."
 HIST_LIMIT = 5
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5-nano"
 
 gpt = GptOpenAI.from_openai(model=MODEL, api_key=os.getenv("OPENAI_API_KEY"))
 chat_history = ChatHistory(max_turns=HIST_LIMIT)

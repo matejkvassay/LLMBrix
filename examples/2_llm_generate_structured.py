@@ -11,7 +11,7 @@ from llmbrix.msg import SystemMsg, UserMsg
 Generate answer with OpenAI GPT model.
 """
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5-mini"
 SYSTEM_MSG = "You name 3 colors that are most similar to color from user."
 USER_MSG = "I chooose yellow!"
 

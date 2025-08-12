@@ -24,7 +24,7 @@ PROMPT = (
 )
 
 HIST_LIMIT = 10
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5-nano"
 
 INPUT_MSGS = ["lz -la", "cd //tmp", "cat /tmp/myfile" "try in local tmp"]
 

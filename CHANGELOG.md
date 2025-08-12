@@ -1,3 +1,9 @@
+# [2025/08/12]
+
+- GPT 5 set as default model for examples
+- Tracing silenced when Arize server not available
+- OpenAI SDK upgrade
+
 # [2025/08/02]
 
 - Easier configuration of `OpenAI` / `AzureOpenAI` clients in `GptOpenAI` class
