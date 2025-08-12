@@ -11,7 +11,7 @@ from llmbrix.tools import AboutMe, GetDatetime, ListDir
 
 RUN_START = time()
 HIST_LIMIT = 5
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5-mini"
 PROMPT_DIR = "./prompts"
 CHATBOT_NAME = "Rupert"
 
