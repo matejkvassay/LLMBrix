@@ -1,3 +1,7 @@
+# [2025/08/17]
+
+- Structured output format `BaseModel` configurable in `Agent`
+
 # [2025/08/12]
 
 - GPT 5 set as default model for examples
