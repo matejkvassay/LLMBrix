@@ -1,3 +1,7 @@
+from typing import Optional, Type, TypeVar
+
+from pydantic import BaseModel
+
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import AssistantMsg, SystemMsg, UserMsg
@@ -6,6 +10,7 @@ from llmbrix.tool_executor import ToolExecutor
 from llmbrix.tracing import get_tracer
 
 tracer = get_tracer()
+T = TypeVar("T", bound=BaseModel)
 
 
 class Agent:
@@ -24,6 +29,7 @@ class Agent:
         chat_history: ChatHistory,
         system_msg: SystemMsg = None,
         tools: list[Tool] | None = None,
+        output_format: Optional[Type[T]] = None,
         max_tool_call_iter=1,
     ):
         """
@@ -36,6 +42,7 @@ class Agent:
                            Ignored if chat_history passed already contains some messages.
         :param tools: List of tools to register to the chatbot agent. Agent will decide on its own to use these tools
                       when needed to answer user's question.
+        :param output_format: (optional) Pydantic BaseModel instance to define structured output from LLM
         :param max_tool_call_iter: Maximum number of tool call loops Agent is allowed to do.
                                    Each loop can include multiple tool calls. Agent can decide to repeat tool calls
                                    if context to answer user's question was not successfully provided or the answer
@@ -50,6 +57,7 @@ class Agent:
         if tools:
             self.tool_executor = ToolExecutor(tools=tools)
         self.max_tool_call_iter = max_tool_call_iter
+        self.output_format = output_format
 
     @tracer.chain(name="Agent.chat")
     def chat(self, user_msg: UserMsg) -> AssistantMsg:
@@ -63,7 +71,9 @@ class Agent:
         self.chat_history.add(user_msg)
 
         for _ in range(self.max_tool_call_iter):
-            gpt_response = self.gpt.generate(messages=self.chat_history.get(), tools=self.tools)
+            gpt_response = self.gpt.generate(
+                messages=self.chat_history.get(), tools=self.tools, output_format=self.output_format
+            )
             if gpt_response.message is None and gpt_response.tool_calls is None:
                 raise RuntimeError("Request failed, both LLM message and tool calls are empty.")
             if gpt_response.message and gpt_response.tool_calls is None:

@@ -44,7 +44,7 @@ class GptOpenAI:
                                         - `AZURE_OPENAI_ENDPOINT`
                               Refer to official SDK `OpenAI` and `AzureOpenAI` class docs for more details.
         :param tools: (optional) list of Tool instances to register to LLM as tools to be used
-        :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
+        :param output_format: (optional) Pydantic BaseModel instance to define structured output from LLM
         :param api_timeout: timeout for OpenAI API in seconds. Default is 60s
         :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
         """
@@ -126,14 +126,14 @@ class GptOpenAI:
 
         :param messages: list of messages for LLM to be used as input.
         :param tools: (optional) list of Tool child instances to register to LLM as tools to be used
-        :param output_format: (optional) Pydantic BaseModel instance to define output format of the LLM.
+        :param output_format: (optional) Pydantic BaseModel instance to define structured output from LLM
         :param api_timeout: timeout for OpenAI API in seconds. Default is set to 60s.
         :param responses_kwargs: (optional) any additional kwargs to be passed to responses API.
                                  Note if output format is defined responses.parse is used.
                                  If output format is not defined responses.create is used.
 
-        :return: GptResponse object (contains AssistantMsg and tool calls list).
-                 In case LLM requests tool calls AssistantMsg might be None.
+        :return: GptResponse object (contains .message, .tool_calls).
+                 In case LLM requests tool calls message field might be None.
                  In case there is no tool calls the tool_calls field will be None.
 
         :raises OpenAIResponseError: if an error field is returned from OpenAI responses API call
