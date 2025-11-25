@@ -39,6 +39,8 @@ class Graph:
         self.start_node = start_node
         self.successors = {}
         for u, v in edges:
+            if not isinstance(u, NodeBase) or not isinstance(v, NodeBase):
+                raise ValueError(f"Each edge node has to be instance of NodeBase. Got types {(type(u), type(v))}")
             if isinstance(u, RouterNode):
                 raise ValueError(
                     f"RouterNode {u.name} cannot be used as edge source, " f"use node_map attribute on RouterNode."

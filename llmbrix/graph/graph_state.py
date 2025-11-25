@@ -47,4 +47,7 @@ class GraphState:
             self.write(**{name: value})
 
     def __repr__(self):
-        return f"GraphState(dict_keys={self._data.keys()})"
+        if not self._data:
+            return "GraphState(empty)"
+        lines = "\n".join(f"  {k!r}: {v!r}," for k, v in self._data.items())
+        return f"GraphState{{\n{lines}\n}}"

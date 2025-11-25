@@ -5,6 +5,26 @@ from llmbrix.graph.graph_state import GraphState
 from llmbrix.graph.node_base import NodeBase
 
 
+def node(func=None, *, name: str = None):
+    """
+    Transforms function to Node object - make sure function takes GraphState as input.
+
+    :param func: Callable, has to take 1 param - GraphState as input, output is ignored.
+                     Should write results back into the GraphState.
+
+    :param name: Optional, str human-readable name of this node.
+                 If not provided its automatically taken from function/method name.
+    :return: Node object.
+    """
+
+    def decorator(f):
+        return Node(f, name=name)
+
+    if callable(func):
+        return decorator(func)
+    return decorator
+
+
 class Node(NodeBase):
     """
     Standard executable Node.
