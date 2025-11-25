@@ -131,12 +131,7 @@ class Graph:
             context.step += 1
         yield context
 
-    def visualize(
-        self,
-        filename: str = "graph",
-        view: bool = False,
-        context: GraphRunContext | None = None,
-    ) -> Digraph:
+    def visualize(self, filename: str = "graph", view: bool = False, context: GraphRunContext | None = None) -> Digraph:
         dot = Digraph(comment="Graph")
         all_nodes: set[NodeBase] = set(self.successors.keys())
         all_nodes.update(self.successors.values())
