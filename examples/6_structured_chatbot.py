@@ -1,8 +1,3 @@
-# flake8: noqa: E402
-from llmbrix.tracing import configure_arize_tracing
-
-configure_arize_tracing(project_name="6_structured_chatbot_demo")
-
 from pydantic import BaseModel, Field
 
 from llmbrix.agent import Agent

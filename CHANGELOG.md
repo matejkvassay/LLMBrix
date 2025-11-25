@@ -1,3 +1,10 @@
+# [2025/11/25]
+
+- New module `llmbrix.graph` for definition of agentic workflow graphs
+- pre-commit config extended with removal of unused imports
+- `tracing.py` module and Arize integration removed
+- `AboutMe` tool removed
+
 # [2025/08/17]
 
 - Structured output format `BaseModel` configurable in `Agent`

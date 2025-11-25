@@ -8,15 +8,13 @@ authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
 description = "Low abstraction agentic LLM framework."
-version = "0.1.3"
+version = "0.1.4"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "arize-phoenix-otel",
+    "graphviz",
     "jinja2",
-    "openai>=1.99.9",
-    "openinference-instrumentation-openai",
-    "opentelemetry-sdk",
+    "openai>=2.8.1",
     "pydantic",
     "structlog"
 ]
