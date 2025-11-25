@@ -15,6 +15,7 @@ repos:
           - --remove-unused-variables
           - --in-place
           - --expand-star-imports
+        exclude: "__init__\\.py"
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:

@@ -7,7 +7,7 @@ from llmbrix.gpt_openai import GptOpenAI
 from llmbrix.msg import SystemMsg, UserMsg
 from llmbrix.prompt import Prompt
 from llmbrix.prompt_reader import PromptReader
-from llmbrix.tools import AboutMe, GetDatetime, ListDir
+from llmbrix.tools import GetDatetime, ListDir
 
 RUN_START = time()
 HIST_LIMIT = 5
@@ -28,15 +28,10 @@ prompt_reader = PromptReader(PROMPT_DIR)
 system_prompt: Prompt = prompt_reader.read("system")
 system_prompt_str: str = system_prompt.render({"chatbot_name": CHATBOT_NAME})
 
-# example of partial render
-about_me_prompt: Prompt = prompt_reader.read("about_me")
-about_me_prompt: Prompt = about_me_prompt.partial_render({"chatbot_name": CHATBOT_NAME})
-about_me_tool = AboutMe(info=about_me_prompt, var_prep_func=get_context_vars)
-
 gpt = GptOpenAI(model=MODEL)
 chat_history = ChatHistory(max_turns=HIST_LIMIT)
 system_msg = SystemMsg(content=system_prompt_str)
-tools = [GetDatetime(), ListDir(), about_me_tool]
+tools = [GetDatetime(), ListDir()]
 agent = Agent(gpt=gpt, chat_history=chat_history, system_msg=system_msg, tools=tools)
 
 while True:

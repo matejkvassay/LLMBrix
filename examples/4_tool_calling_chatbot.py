@@ -1,8 +1,3 @@
-# flake8: noqa: E402
-from llmbrix.tracing import configure_arize_tracing
-
-configure_arize_tracing(project_name="4_tool_calling_chatbot_demo")
-
 from llmbrix.agent import Agent
 from llmbrix.chat_history import ChatHistory
 from llmbrix.gpt_openai import GptOpenAI

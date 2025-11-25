@@ -3,9 +3,6 @@ import os
 from llmbrix.tool import Tool
 from llmbrix.tool_output import ToolOutput
 from llmbrix.tool_param import ToolParam
-from llmbrix.tracing import get_tracer
-
-tracer = get_tracer()
 
 NAME = "list_files_in_directory"
 DESC = "List files in given directory."
@@ -26,7 +23,6 @@ class ListDir(Tool):
         param = ToolParam(name="dir_path", desc=tool_param_desc, dtype=str)
         super().__init__(name=tool_name, desc=tool_desc, params=[param])
 
-    @tracer.tool(name=NAME, description=DESC)
     @staticmethod
     def exec(dir_path: str) -> ToolOutput:
         """
