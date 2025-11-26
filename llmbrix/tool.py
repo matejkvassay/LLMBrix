@@ -30,7 +30,6 @@ class Tool(ABC):
         It can be static or not, it can optionally contain arguments that will be used as kwargs.
         It has to return ToolOutput.
         """
-        pass
 
     @property
     def openai_schema(self) -> dict:
