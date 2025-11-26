@@ -11,10 +11,14 @@ from llmbrix.graph.router_node import RouterNode
 
 class Graph:
     """
-    Graph for LLM workflow consisting of interconnected NodeBase instances.
+    Workflow execution Graph. Consists of steps where each step is a NodeBase instance.
+    Graph executes these steps starting from start_node.
 
-    Only simple Graphs are supported => no parallel branches, parallelism has to be handled within the Nodes.
-    Router nodes can only select 1 successor at a time.
+    Only simple DiGraph topologies are supported:
+        - nodes connect to 1 other node in the workflow DiGraph
+        - router nodes can connect to multiple nodes
+        - during execution nodes always choose only 1 node to continue with based on a condition
+        - no parallel branches are allowed, parallelism has to be handled within the Nodes
     """
 
     def __init__(
@@ -29,7 +33,7 @@ class Graph:
         :param steps: Nodes or edges specifying topography of the workflow Graph.
                       Allowed:
                         - Edge tuples (u, v), where u,v are NodeBase instances.
-                        - Single dones u, where u is NodeBase Instance
+                        - Single nodes u, where u is NodeBase Instance
                       Single nodes are expanded automatically to edge tuples, e.g.:
                                     [A, B, C] -> [(A, B), (B, C)]
                                     [A, (A, X), X, Y] -> [(A, X), (X, Y)]
@@ -99,16 +103,19 @@ class Graph:
 
         :param state: Initial GraphState passed to start_node.
         :yield: GraphRunContext for each execution step.
+
                 Yield happens:
                     - just before a node is executed
                     - graph execution loop is about to terminate:
                         - last node is reached
                         - middleware decided to terminate
                         - step limit was reached
-               Context before application of middleware is not yielded => the middleware is applied
-            as pre-processor before step is executed.
 
-            => Yielded value shows what step is going to be executed just now + last final yield of final context.
+               Context before application of middleware is not yielded => the middleware is applied
+               as pre-processor before step is executed.
+
+               => Yielded value shows what step is going to be executed just now + last final yield of final context.
+
         :return: Iterator over GraphRunContext updates during Graph execution.
         """
         context = GraphRunContext(node=self.start_node, state=state, step=0)
@@ -156,11 +163,15 @@ class Graph:
         Visualizes the Graph using Graphviz and returns image bytes.
 
         Display in Jupyter cell:
-            ```
-            from IPython.display import Image
+            ```python
+            from IPython.display import Image, display
 
+            # inline graph visualization
             Image(graph.visualize())
 
+            # in a loop showing active graph execution
+            for ctx in graph.run_iter(state):
+                display(Image(graph.visualize(context=ctx)))
             ```
 
         :param context: Optional GraphRunContext used to highlight the active "to be executed" node.
