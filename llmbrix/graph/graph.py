@@ -20,13 +20,19 @@ class Graph:
     def __init__(
         self,
         start_node: NodeBase,
-        edges: list[tuple[NodeBase, NodeBase]],
+        steps: list[NodeBase | tuple[NodeBase, NodeBase]],
         middleware: Callable[[GraphRunContext], GraphRunContext] = None,
         step_limit: int = 100,
     ):
         """
         :param start_node: NodeBase to start execution with.
-        :param edges: List of tuples of (u, v), where u,v are NodeBase instances.
+        :param steps: Nodes or edges specifying topography of the workflow Graph.
+                      Allowed:
+                        - Edge tuples (u, v), where u,v are NodeBase instances.
+                        - Single dones u, where u is NodeBase Instance
+                      Single nodes are expanded automatically to edge tuples, e.g.:
+                                    [A, B, C] -> [(A, B), (B, C)]
+                                    [A, (A, X), X, Y] -> [(A, X), (X, Y)]
                       Note u cannot be Router node (use node_map attribute for defining possible edges).
                       Only 1 successor per Node is allowed.
         :param middleware: Function that takes GraphRunContext at beginning of each iteration as input and outputs
@@ -38,7 +44,10 @@ class Graph:
         """
         self.start_node = start_node
         self.successors = {}
-        for u, v in edges:
+
+        steps = self._expand_single_nodes_to_edges(steps)
+
+        for u, v in steps:
             if not isinstance(u, NodeBase) or not isinstance(v, NodeBase):
                 raise ValueError(f"Each edge node has to be instance of NodeBase. Got types {(type(u), type(v))}")
             if isinstance(u, RouterNode):
@@ -133,27 +142,109 @@ class Graph:
 
     def visualize(self, filename: str = "graph", view: bool = False, context: GraphRunContext | None = None) -> Digraph:
         dot = Digraph(comment="Graph")
+
+        # Modern graph aesthetics
+        dot.graph_attr.update(
+            {
+                "rankdir": "LR",  # left-to-right flow looks modern
+                "splines": "spline",  # smooth curves
+                "nodesep": "0.4",
+                "ranksep": "0.6",
+                "bgcolor": "white",
+            }
+        )
+        dot.node_attr.update(
+            {
+                "shape": "box",
+                "style": "filled,rounded",
+                "fillcolor": "#f7f7f7",
+                "color": "#cccccc",
+                "fontname": "Helvetica",
+                "fontsize": "10",
+            }
+        )
+        dot.edge_attr.update(
+            {
+                "color": "#999999",
+                "arrowhead": "vee",
+                "arrowsize": "0.8",
+                "fontname": "Helvetica",
+                "fontsize": "9",
+            }
+        )
+
+        # collect nodes
         all_nodes: set[NodeBase] = set(self.successors.keys())
         all_nodes.update(self.successors.values())
-        # collect nodes
         for node in list(all_nodes):
             if isinstance(node, RouterNode):
                 all_nodes.update(node.node_map.values())
-        # add nodes + highlight curent if available
+
+        # add nodes
         for node in all_nodes:
             attrs = {}
-            if context is not None and context.node == node:
-                attrs = dict(style="filled", fillcolor="lightgreen")
 
-            dot.node(str(node.uid), label=node.name, **attrs)  # internal unique ID  # readable user-facing name
-        # add normal edges
+            # Highlight current node
+            if context is not None and context.node == node:
+                attrs["fillcolor"] = "#b7f7b7"
+                attrs["color"] = "#6cbf6c"
+
+            # Router nodes get a distinct style
+            if isinstance(node, RouterNode):
+                attrs.setdefault("shape", "box")
+                attrs.setdefault("style", "filled,rounded")
+
+            dot.node(str(node.uid), label=node.name, **attrs)
+
+        # add edges
         for u, v in self.successors.items():
             dot.edge(str(u.uid), str(v.uid))
-        # add edges from routers
+
+        # add router edges (blue accent)
         for node in all_nodes:
             if isinstance(node, RouterNode):
                 for key, target in node.node_map.items():
-                    dot.edge(str(node.uid), str(target.uid), label=str(key), color="blue")
+                    dot.edge(
+                        str(node.uid),
+                        str(target.uid),
+                        label=str(key),
+                        color="#4a90e2",
+                        fontcolor="#4a90e2",
+                        arrowsize="0.9",
+                    )
 
         dot.render(filename, view=view, format="png")
         return dot
+
+    @staticmethod
+    def _expand_single_nodes_to_edges(
+        edges: list[NodeBase | tuple[NodeBase, NodeBase]]
+    ) -> list[tuple[NodeBase, NodeBase]]:
+        """
+        Normalize a mixed list of nodes and (node,node) tuples into
+        a flat list of explicit edge tuples.
+
+        Examples:
+            [A, B, C] -> [(A, B), (B, C)]
+            [A, (A, X), X, Y] -> [(A, X), (X, Y)]
+            [(A, B), (B, C)] -> unchanged
+        """
+        normalized: list[tuple[NodeBase, NodeBase]] = []
+        prev: NodeBase | None = None
+
+        for item in edges:
+            if isinstance(item, tuple):
+                u, v = item
+                normalized.append((u, v))
+                prev = v
+                continue
+
+            if isinstance(item, NodeBase):
+                if prev is not None:
+                    normalized.append((prev, item))
+                prev = item
+                continue
+
+            raise TypeError(f"Edge list items must be NodeBase or (NodeBase, NodeBase), got {type(item)}")
+
+        return normalized
