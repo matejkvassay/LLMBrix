@@ -3,7 +3,8 @@
 - New `Graph` initialization options include specification of mixed sequence of nodes and edges
 - `Graph.visualize()` is done in-memory and returns img bytes sequence to be displayed
 - `Graph.run_iter()` yielding optimized to yield just before step execution / termination
-- `graph` submodule docs improved
+- `graph` module docs improved
+- `graph` module unit tests added
 
 # [2025/11/25]
 

@@ -262,7 +262,7 @@ class Graph:
             if isinstance(item, tuple):
                 u, v = item
                 normalized.append((u, v))
-                prev = v
+                prev = None
                 continue
 
             if isinstance(item, NodeBase):

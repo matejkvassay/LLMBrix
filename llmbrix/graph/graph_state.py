@@ -28,6 +28,9 @@ class GraphState:
         except KeyError as e:
             raise KeyError(f"GraphState no value stored under key: '{key}'") from e
 
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
     def __getitem__(self, item):
         return self.read(item)
 
