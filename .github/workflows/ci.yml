@@ -15,6 +15,11 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+
     - name: Install
       run: |
         python -m venv venv
