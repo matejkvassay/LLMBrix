@@ -1,3 +1,11 @@
+# [2025/11/26]
+
+- New `Graph` initialization options include specification of mixed sequence of nodes and edges
+- `Graph.visualize()` is done in-memory and returns img bytes sequence to be displayed
+- `Graph.run_iter()` yielding optimized to yield just before step execution / termination
+- `graph` module docs improved
+- `graph` module unit tests added
+
 # [2025/11/25]
 
 - New module `llmbrix.graph` for definition of agentic workflow graphs
