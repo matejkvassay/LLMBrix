@@ -2,14 +2,18 @@
 
 # About LLMBrix
 
-- in early alpha development do not use productively
+- **not maintained anymore**
+- toy project on first implementation of AI framework
 - low abstraction LLM framework
 - simple toolkit to create AI apps
+- tool calling
+- graph execution
+- works with OpenAI API only
 
 # Install
 
 ```bash
-pip install llmbrix --pre
+pip install llmbrix
 ```
 # Use
 
