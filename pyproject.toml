@@ -13,10 +13,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "graphviz",
-    "jinja2",
-    "openai>=2.8.1",
-    "pydantic",
-    "structlog"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

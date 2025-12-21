@@ -1,3 +1,8 @@
+# [2025/12/21]
+- Refactor from OpenAI LLM provider to Google
+- New library v2
+-
+
 # [2025/11/26]
 
 - New `Graph` initialization options include specification of mixed sequence of nodes and edges
