@@ -1,38 +1,77 @@
-from typing import List, Optional, Tuple
-
 import PIL.Image
-from google.genai import types
+from google.genai import Client, types
 
 from llmbrix.msg.modality import Modality
 
+FILE_LIMIT = 5
+USER_ROLE_NAME = "user"
 
-class UserMsg:
-    role = "user"
+
+class UserMsg(types.Content):
+    """
+    Message from user.
+    Can optionally contain additional attachments (e.g. image, sound, etc.).
+    """
 
     def __init__(
         self,
         text: str,
-        images: Optional[List[PIL.Image.Image]] = None,
-        youtube_urls: Optional[List[str]] = None,
-        files: Optional[List[Tuple[bytes, Modality]]] = None,
+        images: list[PIL.Image.Image] | None = None,
+        files: list[tuple[bytes, Modality]] | None = None,
+        youtube_url: str | None = None,
+        gcs_uris: list[tuple[str, Modality]] | None = None,
     ):
-        self.text = text
-        self.images = images or []
-        self.youtube_urls = youtube_urls or []
-        self.files = files or []
+        """
+        Text has to be filled.
+        Other params serve to pass optional attachments that can be sent to the LLM.
+        Parts for message sent to the LLM are ordered in following way:
+            - YouTube video
+            - images
+            - URI-read files
+            - files passed as bytes
+            - text
+        => First large attachments are mentioned and then text instructions how to handle them are presented to the LLM.
 
-    def to_gemini(self) -> types.Content:
+        Args:
+            text: str text message from User.
+            images: Image attachments loaded into PIL. Maximum 5 images are supported.
+            files: list of Tuple (bytes, modality). Note files are supported only up to 20MB limit.
+            youtube_url: URL of YouTube video
+            gcs_uris: Tuple (URI, modality)
+                      URI for content from GCS bucket, e.g. tuple (gs://bucket/file.pdf, Modality.PDF).
+        """
+        images = images or []
+        files = files or []
+        gcs_uris = gcs_uris or []
+        n_attachments = len(images) + len(files) + len(gcs_uris) + 1 if youtube_url else 0
+        if n_attachments > FILE_LIMIT:
+            raise ValueError(f"Maximum {FILE_LIMIT} file attachments allowed. {n_attachments} attachments received.")
         parts = []
-        for url in self.youtube_urls:
-            parts.append(types.Part.from_uri(file_uri=url, mime_type="video/youtube"))
-
-        for img in self.images:
+        if youtube_url:
+            parts.append(types.Part.from_uri(file_uri=youtube_url, mime_type="video/youtube"))
+        for img in images:
             parts.append(types.Part.from_image(img))
-
-        for file_bytes, modality in self.files:
+        for uri, modality in gcs_uris:
+            parts.append(types.Part.from_uri(file_uri=uri, mime_type=modality.value))
+        for file_bytes, modality in files:
             parts.append(types.Part.from_bytes(data=file_bytes, mime_type=modality.value))
+        parts.append(types.Part.from_text(text=text))
+        super().__init__(role=USER_ROLE_NAME, parts=parts)
 
-        if self.text:
-            parts.append(types.Part.from_text(text=self.text))
+    def count_tokens(
+        self, client: Client, model: str = "gemini-2.0-flash", config: types.CountTokensConfigOrDict | None = None
+    ) -> int:
+        """
+        Compute exact number of tokens this message will produce on input in Gemini API,
+        including hidden framing tokens.
 
-        return types.Content(role=self.role, parts=parts)
+        Args:
+            client: Gemini client instance from SDK.
+            model: ID of Gemini model.
+            config:
+
+        Returns: int number of tokens this message will produce on input.
+
+        """
+        response = client.models.count_tokens(model=model, contents=[self], config=config)
+        return response.total_tokens
