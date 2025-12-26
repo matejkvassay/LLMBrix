@@ -13,6 +13,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "graphviz",
+    "pillow",
+    "google-genai"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
