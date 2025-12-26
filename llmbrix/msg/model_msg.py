@@ -33,6 +33,8 @@ class ModelMsg(types.Content):
 
     In order to ensure small object size and easy "Pydantic" serialization all these properties are computed in
     lazy fashion and not registered as Pydantic object attributes.
+
+    Due to property caching this implementation sacrifices higher memory usage for lower CPU load at attribute access.
     """
 
     def __init__(self, parts: list[types.Part]):
