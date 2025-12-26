@@ -115,7 +115,7 @@ class ModelMsg(types.Content):
             elif part.text:
                 segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.TEXT, content=part.text, mime_type=None))
             elif part.inline_data:
-                mime = part.inline_data.mime_type
+                mime = part.inline_data.mime_type or ""
                 data = part.inline_data.data
                 if mime.startswith("image/"):
                     image = PIL.Image.open(io.BytesIO(data))
@@ -137,4 +137,4 @@ class ModelMsg(types.Content):
 
         Returns: list of ModelMsgSegment objects.
         """
-        return [s for s in self.segments if s["type"] == segment_type.value]
+        return [s for s in self.segments if s["type"] is segment_type]
