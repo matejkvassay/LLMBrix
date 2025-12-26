@@ -1,7 +1,7 @@
 import PIL.Image
 from google.genai import Client, types
 
-from llmbrix.msg.modality import Modality
+from llmbrix.msg.file_types import FileTypes
 
 FILE_LIMIT = 5
 USER_ROLE_NAME = "user"
@@ -17,9 +17,9 @@ class UserMsg(types.Content):
         self,
         text: str,
         images: list[PIL.Image.Image] | None = None,
-        files: list[tuple[bytes, Modality]] | None = None,
+        files: list[tuple[bytes, FileTypes]] | None = None,
         youtube_url: str | None = None,
-        gcs_uris: list[tuple[str, Modality]] | None = None,
+        gcs_uris: list[tuple[str, FileTypes]] | None = None,
     ):
         """
         Text has to be filled.

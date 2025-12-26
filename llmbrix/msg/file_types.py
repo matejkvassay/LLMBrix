@@ -1,17 +1,14 @@
 from enum import Enum
 
 
-class Modality(Enum):
+class FileTypes(Enum):
     """
-    File types supported by Gemini API.
+    File types supported as an User input attachment.
     """
 
     # --- IMAGES ---
     IMAGE_PNG = "image/png"
     IMAGE_JPEG = "image/jpeg"
-    IMAGE_WEBP = "image/webp"
-    IMAGE_HEIC = "image/heic"
-    IMAGE_HEIF = "image/heif"
 
     # --- DOCUMENTS & DATA ---
     PDF = "application/pdf"
@@ -24,12 +21,6 @@ class Modality(Enum):
     # --- AUDIO ---
     AUDIO_MP3 = "audio/mp3"
     AUDIO_WAV = "audio/wav"
-    AUDIO_FLAC = "audio/flac"
-    AUDIO_AAC = "audio/aac"
-    AUDIO_OGG = "audio/ogg"
 
     # --- VIDEO ---
     VIDEO_MP4 = "video/mp4"
-    VIDEO_MOV = "video/quicktime"
-    VIDEO_WEBM = "video/webm"
-    VIDEO_AVI = "video/x-msvideo"
