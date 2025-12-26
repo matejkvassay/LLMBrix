@@ -15,7 +15,7 @@ class ModelMsg(types.Content):
     LLM response message.
 
     Note this message internally contains multiple message segments.
-    These segments can be TEXT, IMAGE, TOOL_CALL, FILE, THOUGHT or AUDIO.
+    These segments can be TEXT, IMAGE, TOOL_CALL, THOUGHT or AUDIO.
 
     You can control what modalities are allowed in generation config.
 
