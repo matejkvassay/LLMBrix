@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SegmentTypes(Enum):
+class ModelMsgSegmentTypes(Enum):
     """
     File types which can be returned by the Gemini model.
     """
@@ -9,6 +9,5 @@ class SegmentTypes(Enum):
     TEXT = "text"
     TOOL_CALL = "tool_call"
     IMAGE = "image"
-    FILE = "file"
     THOUGHT = "thought"
     AUDIO = "audio"
