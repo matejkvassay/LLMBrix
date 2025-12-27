@@ -1,4 +1,5 @@
 import io
+import logging
 from functools import cached_property
 
 import PIL.Image
@@ -6,6 +7,8 @@ from google.genai import types
 
 from llmbrix.msg.model_msg_segment import ModelMsgSegment
 from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
+
+logger = logging.getLogger(__name__)
 
 MODEL_ROLE_NAME = "model"
 
@@ -122,6 +125,15 @@ class ModelMsg(types.Content):
                     segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.IMAGE, content=image, mime_type=mime))
                 elif mime.startswith("audio/"):
                     segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.AUDIO, content=data, mime_type=mime))
+            elif part.file_data:
+                logger.warning("Received unsupported `file_data` from LLM.")
+                segments.append(
+                    ModelMsgSegment(
+                        type=ModelMsgSegmentTypes.UNSUPPORTED_FILE,
+                        content=part.file_data.file_uri,
+                        mime_type=part.file_data.mime_type,
+                    )
+                )
             elif part.function_call:
                 segments.append(
                     ModelMsgSegment(type=ModelMsgSegmentTypes.TOOL_CALL, content=part.function_call, mime_type=None)

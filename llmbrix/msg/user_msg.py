@@ -43,7 +43,7 @@ class UserMsg(types.Content):
         images = images or []
         files = files or []
         gcs_uris = gcs_uris or []
-        n_attachments = len(images) + len(files) + len(gcs_uris) + 1 if youtube_url else 0
+        n_attachments = len(images) + len(files) + len(gcs_uris) + (1 if youtube_url else 0)
         if n_attachments > FILE_LIMIT:
             raise ValueError(f"Maximum {FILE_LIMIT} file attachments allowed. {n_attachments} attachments received.")
         parts = []
@@ -58,17 +58,15 @@ class UserMsg(types.Content):
         parts.append(types.Part.from_text(text=text))
         super().__init__(role=USER_ROLE_NAME, parts=parts)
 
-    def count_tokens(
-        self, client: Client, model: str = "gemini-2.0-flash", config: types.CountTokensConfigOrDict | None = None
-    ) -> int:
+    def count_tokens(self, client: Client, model: str, config: types.CountTokensConfigOrDict | None = None) -> int:
         """
         Compute exact number of tokens this message will produce on input in Gemini API,
         including hidden framing tokens.
 
         Args:
             client: Gemini client instance from SDK.
-            model: ID of Gemini model.
-            config:
+            model: ID of Gemini model. E.g. "gemini-2.0-flash"
+            config: CountTokensConfigOrDict object
 
         Returns: int number of tokens this message will produce on input.
 
