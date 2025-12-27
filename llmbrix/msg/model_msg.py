@@ -53,7 +53,6 @@ class ModelMsg(types.Content):
         """
         Initialize new ModelMsg from string.
         Creates Content object with 1 "text" part.
-        Use when "faking" model message.
 
         Args:
             text: Content of the model message.
