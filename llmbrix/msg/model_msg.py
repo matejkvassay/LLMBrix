@@ -99,13 +99,13 @@ class ModelMsg(types.Content):
         return [s.content for s in self.get_segments_by_type(ModelMsgSegmentTypes.IMAGE)]
 
     @cached_property
-    def audio(self) -> list[bytes]:
+    def audio(self) -> list[tuple[io.BytesIO, str]]:
         """
         List of PIL images included with LLM response.
 
-        Returns: list of PIL images.
+        Returns: list of tuples: (audio_bytes, mime_type)
         """
-        return [s.content for s in self.get_segments_by_type(ModelMsgSegmentTypes.AUDIO)]
+        return [(s.content, s.mime_type) for s in self.get_segments_by_type(ModelMsgSegmentTypes.AUDIO)]
 
     @cached_property
     def segments(self) -> list[ModelMsgSegment]:
@@ -124,6 +124,8 @@ class ModelMsg(types.Content):
                     segments.append(
                         ModelMsgSegment(type=ModelMsgSegmentTypes.THOUGHT, content=part.text, mime_type="text/plain")
                     )
+                else:
+                    logger.warning("Received Part with thought=True with an empty text, skipping.")
             elif part.text:
                 segments.append(
                     ModelMsgSegment(type=ModelMsgSegmentTypes.TEXT, content=part.text, mime_type="text/plain")
@@ -191,6 +193,12 @@ class ModelMsg(types.Content):
         return [s for s in self.segments if s.type is segment_type]
 
     def __repr__(self) -> str:
+        """
+        String representation of model message.
+
+        Returns: str with information of number of segments of each type present in this message.
+
+        """
         segment_counts = {}
         for s in self.segments:
             segment_counts[s.type] = segment_counts.get(s.type, 0) + 1
