@@ -11,4 +11,8 @@ class ModelMsgSegmentTypes(Enum):
     IMAGE = "image"
     THOUGHT = "thought"
     AUDIO = "audio"
+    FILE_URI = "file_uri"
+    CODE_EXECUTABLE = "code_executable"
+    CODE_RESULT = "code_result"
     UNSUPPORTED_FILE = "unsupported_file"
+    UNSUPPORTED_PART = "unsupported_part"
