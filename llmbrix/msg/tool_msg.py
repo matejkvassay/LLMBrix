@@ -47,16 +47,3 @@ class ToolMsg(types.Content):
             raise ValueError(f"Count mismatch: Model called {len(calls)} tools, but got {len(results)} results.")
 
         return [cls(tool_call=call, result=res) for call, res in zip(calls, results)]
-
-    def dump(self) -> dict:
-        """Serializes for storage (Redis/JSON). Handles bytes-to-base64 via Pydantic."""
-        return self.model_dump(exclude_none=True, mode="json")
-
-    @classmethod
-    def load(cls, data: dict) -> "ToolMsg":
-        """Reconstructs ToolMsg from a dictionary (e.g., from Redis)."""
-        content = types.Content.model_validate(data)
-        # Use __new__ to bypass the constructor's requirement for a tool_call object
-        instance = cls.__new__(cls)
-        super(cls, instance).__init__(role=TOOL_ROLE_NAME, parts=content.parts)
-        return instance
