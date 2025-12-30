@@ -1,4 +1,4 @@
-     [build-system]
+[build-system]
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
@@ -14,7 +14,8 @@ requires-python = ">=3.11"
 dependencies = [
     "graphviz",
     "pillow",
-    "google-genai>=1.56.0"
+    "google-genai>=1.56.0",
+    "pydantic"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

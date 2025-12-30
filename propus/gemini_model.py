@@ -2,9 +2,12 @@ import os
 from typing import Type
 
 from google.genai import Client, types
+from google.genai.types import GenerationConfig
 from pydantic import BaseModel
 
 from propus.msg import BaseMsg, ModelMsg
+
+SAFETY_MAX_TOKENS_DEFAULT = 10000
 
 
 class GeminiModel:
@@ -40,22 +43,72 @@ class GeminiModel:
         system_instruction: str | None = None,
         tools: list[types.Tool] | None = None,
         response_schema: Type[BaseModel] | None = None,
+        json_mode: bool = False,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        top_k: int | None = None,
+        max_output_tokens: int | None = SAFETY_MAX_TOKENS_DEFAULT,
+        generation_config: GenerationConfig | None = None,
+        include_thoughts: bool = False,
+        thinking_budget: int = None,
+        thinking_level: types.ThinkingLevel | None = None,
     ):
-        cfg = types.GenerateContentConfig()
-        if system_instruction:
-            cfg.system_instruction = system_instruction
-        if response_schema:
-            cfg.update(
-                {
-                    "response_mime_type": "application/json",
-                    "response_json_schema": response_schema.model_json_schema(),
-                }
-            )
-        response = self.gemini_client.models.generate_content(model=self.model_name, contents=messages, config=cfg)
-        parsed = None
-        if response_schema:
-            parsed = response.parsed
-        return ModelMsg(parts=response.parts, parsed=parsed)
+        """
 
-    def generate_from_content_cfg(self, cfg: types.GenerateContentConfig):
-        pass
+        Args:
+            messages: Chat history consisting of BaseMsg objects.
+            system_instruction: System prompt instructing how should LLM behave.
+            tools: List of BaseTool instances.
+            json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.
+            response_schema: LLM will predict output in this structure, parsed model filled with values can be found
+                             in .parsed attribute of the returned ModelMsg.
+            temperature: Float temperature setting, controls randomness of output.
+            top_p: If specified, nucleus sampling will be used.
+            top_k: If specified, top-k sampling will be used.
+            max_output_tokens: Hard limit on maximum output tokens LLM can produce.
+                               By default, set to a limit to avoid cost explosion incidents.
+                               Can be set to None for infinite generation.
+            generation_config: Pass custom google.genai.types.GenerationConfig instance overriding other generation
+                               settings passed.
+            include_thoughts: Include LLM internal reasoning tokens in the response. If enabled tokens can be found
+                              inside ModelMsg.segments as one of the "THOUGHT" type outputs.
+            thinking_budget: Gemini 2 only.
+                             Set hard limit on allowed number of thinking tokens.
+                             Possible values:
+                                a) 0 => thinking disabled,
+                                b) -1 => automatic
+                                c) int[1,..,N] => limit thinking token count to this num.
+                             Legacy parameter for Gemini 2.5 models, deprecated in Gemini 3.
+            thinking_level: Gemini 3 only.
+                            Set thinking level for Gemini 3 models.
+
+        Returns: ModelMsg object containing response from Gemini model.
+
+        """
+        if (response_schema or json_mode) and (tools is not None):
+            raise ValueError("JSON mode or response schema can only be chosen when no tools are used.")
+
+        tools = None
+
+        if not generation_config:
+            generation_config = types.GenerateContentConfig(
+                max_output_tokens=max_output_tokens,
+                system_instruction=system_instruction,
+                response_json_schema=response_schema.model_json_schema() if response_schema else None,
+                response_mime_type="application/json" if response_schema or json_mode else "text/plain",
+                temperature=temperature,
+                tools=tools,
+                top_k=top_k,
+                top_p=top_p,
+                thinking_config=types.ThinkingConfig(
+                    include_thoughts=include_thoughts, thinking_budget=thinking_budget, thinking_level=thinking_level
+                ),
+            )
+        response = self.gemini_client.models.generate_content(
+            model=self.model_name, contents=messages, config=generation_config
+        )
+        parsed = None
+        if generation_config.response_json_schema:
+            parsed = response.parsed
+
+        return ModelMsg(parts=response.parts, parsed=parsed)
