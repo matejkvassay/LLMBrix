@@ -5,9 +5,9 @@ from functools import cached_property
 import PIL.Image
 from google.genai import types
 
-from scorpius.msg.base_msg import BaseMsg
-from scorpius.msg.model_msg_segment import ModelMsgSegment
-from scorpius.msg.model_msg_segment_types import ModelMsgSegmentTypes
+from propus.msg.base_msg import BaseMsg
+from propus.msg.model_msg_segment import ModelMsgSegment
+from propus.msg.model_msg_segment_types import ModelMsgSegmentTypes
 
 logger = logging.getLogger(__name__)
 

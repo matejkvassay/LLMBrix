@@ -3,8 +3,8 @@ from typing import Any
 
 from google.genai import types
 
-from scorpius.msg.base_msg import BaseMsg
-from scorpius.msg.model_msg import ModelMsg
+from propus.msg.base_msg import BaseMsg
+from propus.msg.model_msg import ModelMsg
 
 logger = logging.getLogger(__name__)
 

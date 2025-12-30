@@ -4,7 +4,7 @@ from typing import Type
 from google.genai import Client, types
 from pydantic import BaseModel
 
-from scorpius.msg import BaseMsg, ModelMsg
+from propus.msg import BaseMsg, ModelMsg
 
 
 class GeminiModel:

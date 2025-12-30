@@ -1,7 +1,7 @@
 import uuid
 
-from scorpius.graph.graph_state import GraphState
-from scorpius.graph.node_base import NodeBase
+from propus.graph.graph_state import GraphState
+from propus.graph.node_base import NodeBase
 
 
 class RouterNode(NodeBase):

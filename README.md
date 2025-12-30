@@ -1,5 +1,5 @@
 # Install
 
 ```bash
-pip install scorpius
+pip install propus
 ```

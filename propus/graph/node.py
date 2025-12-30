@@ -1,8 +1,8 @@
 import uuid
 from typing import Callable
 
-from scorpius.graph.graph_state import GraphState
-from scorpius.graph.node_base import NodeBase
+from propus.graph.graph_state import GraphState
+from propus.graph.node_base import NodeBase
 
 
 def node(func=None, *, name: str = None):

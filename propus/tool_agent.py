@@ -1,4 +1,4 @@
-from scorpius.gemini_model import GeminiModel
+from propus.gemini_model import GeminiModel
 
 
 class ToolAgent:

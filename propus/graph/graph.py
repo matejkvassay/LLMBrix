@@ -2,11 +2,11 @@ from typing import Callable, Iterator
 
 from graphviz import Digraph
 
-from scorpius.graph.graph_run_context import GraphRunContext
-from scorpius.graph.graph_state import GraphState
-from scorpius.graph.node import Node
-from scorpius.graph.node_base import NodeBase
-from scorpius.graph.router_node import RouterNode
+from propus.graph.graph_run_context import GraphRunContext
+from propus.graph.graph_state import GraphState
+from propus.graph.node import Node
+from propus.graph.node_base import NodeBase
+from propus.graph.router_node import RouterNode
 
 
 class Graph:

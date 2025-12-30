@@ -1,10 +1,10 @@
 import pytest
 
-from scorpius.graph.graph import Graph
-from scorpius.graph.graph_run_context import GraphRunContext
-from scorpius.graph.graph_state import GraphState
-from scorpius.graph.node import Node
-from scorpius.graph.router_node import RouterNode
+from propus.graph.graph import Graph
+from propus.graph.graph_run_context import GraphRunContext
+from propus.graph.graph_state import GraphState
+from propus.graph.node import Node
+from propus.graph.router_node import RouterNode
 
 
 @Node

@@ -1,8 +1,8 @@
 import PIL.Image
 from google.genai import types
 
-from scorpius.msg.base_msg import BaseMsg
-from scorpius.msg.user_msg_file_types import UserMsgFileTypes
+from propus.msg.base_msg import BaseMsg
+from propus.msg.user_msg_file_types import UserMsgFileTypes
 
 FILE_LIMIT = 5
 USER_ROLE_NAME = "user"
