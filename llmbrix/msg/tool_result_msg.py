@@ -3,6 +3,7 @@ from typing import Any
 
 from google.genai import types
 
+from llmbrix.msg.base_msg import BaseMsg
 from llmbrix.msg.model_msg import ModelMsg
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 TOOL_ROLE_NAME = "function"
 
 
-class ToolMsg(types.Content):
+class ToolResultMsg(BaseMsg):
     """
     Message representing the result of a tool (function) execution.
     This is sent back to the LLM as the 'Function Response'.
@@ -33,7 +34,7 @@ class ToolMsg(types.Content):
         super().__init__(role=TOOL_ROLE_NAME, parts=[part])
 
     @classmethod
-    def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolMsg"]:
+    def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolResultMsg"]:
         """
         Helper to create a list of ToolMsgs from a ModelMsg that requested multiple tools.
 

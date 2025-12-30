@@ -1,13 +1,14 @@
 import PIL.Image
-from google.genai import Client, types
+from google.genai import types
 
+from llmbrix.msg.base_msg import BaseMsg
 from llmbrix.msg.user_msg_file_types import UserMsgFileTypes
 
 FILE_LIMIT = 5
 USER_ROLE_NAME = "user"
 
 
-class UserMsg(types.Content):
+class UserMsg(BaseMsg):
     """
     Message from user.
     Can optionally contain additional attachments (e.g. image, sound, etc.).
@@ -57,19 +58,3 @@ class UserMsg(types.Content):
             parts.append(types.Part.from_bytes(data=file_bytes, mime_type=modality.value))
         parts.append(types.Part.from_text(text=text))
         super().__init__(role=USER_ROLE_NAME, parts=parts)
-
-    def count_tokens(self, client: Client, model: str, config: types.CountTokensConfigOrDict | None = None) -> int:
-        """
-        Compute exact number of tokens this message will produce on input in Gemini API,
-        including hidden framing tokens.
-
-        Args:
-            client: Gemini client instance from SDK.
-            model: ID of Gemini model. E.g. "gemini-2.0-flash"
-            config: CountTokensConfigOrDict object
-
-        Returns: int number of tokens this message will produce on input.
-
-        """
-        response = client.models.count_tokens(model=model, contents=[self], config=config)
-        return response.total_tokens

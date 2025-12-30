@@ -5,6 +5,7 @@ from functools import cached_property
 import PIL.Image
 from google.genai import types
 
+from llmbrix.msg.base_msg import BaseMsg
 from llmbrix.msg.model_msg_segment import ModelMsgSegment
 from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 MODEL_ROLE_NAME = "model"
 
 
-class ModelMsg(types.Content):
+class ModelMsg(BaseMsg):
     """
     LLM response message.
 
