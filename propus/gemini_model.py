@@ -6,6 +6,7 @@ from google.genai.types import GenerationConfig
 from pydantic import BaseModel
 
 from propus.msg import BaseMsg, ModelMsg
+from propus.tools import BaseTool
 
 SAFETY_MAX_TOKENS_DEFAULT = 10000
 
@@ -41,7 +42,7 @@ class GeminiModel:
         self,
         messages: list[BaseMsg],
         system_instruction: str | None = None,
-        tools: list[types.Tool] | None = None,
+        tools: list[BaseTool] | None = None,
         response_schema: Type[BaseModel] | None = None,
         json_mode: bool = False,
         temperature: float | None = None,
@@ -85,10 +86,8 @@ class GeminiModel:
         Returns: ModelMsg object containing response from Gemini model.
 
         """
-        if (response_schema or json_mode) and (tools is not None):
+        if (response_schema or json_mode) and tools:
             raise ValueError("JSON mode or response schema can only be chosen when no tools are used.")
-
-        tools = None
 
         if not generation_config:
             generation_config = types.GenerateContentConfig(
