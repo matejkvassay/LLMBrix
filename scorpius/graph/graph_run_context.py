@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from llmbrix.graph.graph_state import GraphState
-from llmbrix.graph.node_base import NodeBase
+from scorpius.graph.graph_state import GraphState
+from scorpius.graph.node_base import NodeBase
 
 
 @dataclass

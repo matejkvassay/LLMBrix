@@ -3,12 +3,12 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "llmbrix"
+name = "scorpius"
 authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
 description = "Low abstraction agentic LLM framework."
-version = "0.2.0"
+version = "0.0.0a1"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

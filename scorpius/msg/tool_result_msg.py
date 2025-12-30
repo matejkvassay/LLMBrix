@@ -3,8 +3,8 @@ from typing import Any
 
 from google.genai import types
 
-from llmbrix.msg.base_msg import BaseMsg
-from llmbrix.msg.model_msg import ModelMsg
+from scorpius.msg.base_msg import BaseMsg
+from scorpius.msg.model_msg import ModelMsg
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
+from scorpius.msg.model_msg_segment_types import ModelMsgSegmentTypes
 
 
 @dataclass

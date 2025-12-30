@@ -1,10 +1,10 @@
 import pytest
 
-from llmbrix.graph.graph import Graph
-from llmbrix.graph.graph_run_context import GraphRunContext
-from llmbrix.graph.graph_state import GraphState
-from llmbrix.graph.node import Node
-from llmbrix.graph.router_node import RouterNode
+from scorpius.graph.graph import Graph
+from scorpius.graph.graph_run_context import GraphRunContext
+from scorpius.graph.graph_state import GraphState
+from scorpius.graph.node import Node
+from scorpius.graph.router_node import RouterNode
 
 
 @Node

@@ -5,9 +5,9 @@ from functools import cached_property
 import PIL.Image
 from google.genai import types
 
-from llmbrix.msg.base_msg import BaseMsg
-from llmbrix.msg.model_msg_segment import ModelMsgSegment
-from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
+from scorpius.msg.base_msg import BaseMsg
+from scorpius.msg.model_msg_segment import ModelMsgSegment
+from scorpius.msg.model_msg_segment_types import ModelMsgSegmentTypes
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +41,15 @@ class ModelMsg(BaseMsg):
     Due to property caching this implementation sacrifices higher memory usage for lower CPU load at attribute access.
     """
 
-    def __init__(self, parts: list[types.Part]):
+    def __init__(self, parts: list[types.Part], parsed: dict | None = None):
         """
         Args:
             parts: Part objects from Content object returned by Gemini API.
                    See from_text() constructor to initialize from string.
+            parsed: Parsed JSON with LLM response. Use in case structured output is required,
+                    the value will be stored in .parsed attribute.
         """
+        self.parsed = parsed
         super().__init__(role=MODEL_ROLE_NAME, parts=parts)
 
     @classmethod
