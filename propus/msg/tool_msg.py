@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 TOOL_ROLE_NAME = "function"
 
 
-class ToolResultMsg(BaseMsg):
+class ToolMsg(BaseMsg):
     """
     Message representing the result of a tool (function) execution.
     This is sent back to the LLM as the 'Function Response'.
@@ -34,7 +34,7 @@ class ToolResultMsg(BaseMsg):
         super().__init__(role=TOOL_ROLE_NAME, parts=[part])
 
     @classmethod
-    def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolResultMsg"]:
+    def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolMsg"]:
         """
         Helper to create a list of ToolMsgs from a ModelMsg that requested multiple tools.
 

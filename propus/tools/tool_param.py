@@ -6,6 +6,12 @@ from propus.tools.tool_param_types import ToolParamTypes
 
 
 class ToolParam(BaseModel):
+    """
+    Parameter of an LLM tool.
+    Declares a tool parameter for the LLM.
+    All following fields visible are seen by the LLM.
+    """
+
     name: str  # has to be the same as name of parameter in your tool .execute() method
     description: str
     type: ToolParamTypes
