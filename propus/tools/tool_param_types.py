@@ -7,4 +7,3 @@ class ToolParamTypes(str, Enum):
     INTEGER = "integer"
     BOOLEAN = "boolean"
     ARRAY = "array"
-    OBJECT = "object"

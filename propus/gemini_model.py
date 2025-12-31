@@ -42,7 +42,7 @@ class GeminiModel:
         self,
         messages: list[BaseMsg],
         system_instruction: str | None = None,
-        tools: list[BaseTool] | None = None,
+        tools: list[BaseTool] | types.ToolListUnion | None = None,
         response_schema: Type[BaseModel] | None = None,
         json_mode: bool = False,
         temperature: float | None = None,
@@ -55,9 +55,9 @@ class GeminiModel:
         thinking_level: types.ThinkingLevel | None = None,
     ):
         """
-
         Args:
             messages: Chat history consisting of BaseMsg objects.
+                      Has to end with UserMsg (current request to respond to).
             system_instruction: System prompt instructing how should LLM behave.
             tools: List of BaseTool instances.
             json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.

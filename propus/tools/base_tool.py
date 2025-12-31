@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 
 from google.genai import types
 
-from propus.data_models.session_context import SessionContext
 from propus.tools.tool_param import ToolParam
 
 
@@ -23,7 +22,7 @@ class BaseTool(ABC, types.Tool):
         super().__init__(function_declarations=[func_declaration], **kwargs)
 
     @abstractmethod
-    def execute(self, context: SessionContext, **kwargs) -> dict:
+    def execute(self, context: dict | None = None, **kwargs) -> dict:
         """
         Tool execution logic.
         """
