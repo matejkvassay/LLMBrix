@@ -87,13 +87,17 @@ class GeminiModel:
 
         """
         if (response_schema or json_mode) and tools:
-            raise ValueError("JSON mode or response schema can only be chosen when no tools are used.")
+            raise ValueError(
+                "Do not use tools and a response_schema in the same call. "
+                "Best practice: Use tools first to gather data, then call generate "
+                "again with your schema to format the final result."
+            )
 
         if not generation_config:
             generation_config = types.GenerateContentConfig(
                 max_output_tokens=max_output_tokens,
                 system_instruction=system_instruction,
-                response_json_schema=response_schema.model_json_schema() if response_schema else None,
+                response_schema=response_schema,
                 response_mime_type="application/json" if response_schema or json_mode else "text/plain",
                 temperature=temperature,
                 tools=tools,
@@ -107,7 +111,7 @@ class GeminiModel:
             model=self.model_name, contents=messages, config=generation_config
         )
         parsed = None
-        if generation_config.response_json_schema:
+        if generation_config.response_schema:
             parsed = response.parsed
 
         return ModelMsg(parts=response.parts, parsed=parsed)
