@@ -1,6 +1,6 @@
 import logging
 import traceback
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from typing import Any
 
 from google.genai import types
@@ -12,27 +12,61 @@ logger = logging.getLogger(__name__)
 
 
 class ToolExecutor:
-    def __init__(self, tools: list[BaseTool], n_workers: int = 1, timeout: int | None = 60):
+    """
+    Executes required tool calls via multi-threading and handles potential errors in LLM-friendly way.
+    """
+
+    def __init__(self, tools: list[BaseTool], n_workers: int = 4, timeout: int | None = 120):
+        """
+        Args:
+            tools: List of tools to execute.
+            n_workers: Number of threads to use.
+            timeout: Timeout in seconds. If timeout is reached tool result will inform LLM about timeout error.
+                     Beware zombie threads are possible when timeout is reached.
+        """
         self.tool_index = {t.name: t for t in tools}
         self.n_workers = n_workers
         self.timeout = timeout
+        self.executor = ThreadPoolExecutor(max_workers=n_workers)
 
     def execute(self, tool_requests: list[types.FunctionCall]) -> list[ToolOutput]:
-        if self.n_workers == 1:
-            return [self._execute_single_tool_call(req) for req in tool_requests]
-        with ThreadPoolExecutor(max_workers=self.n_workers) as executor:
-            futures = [executor.submit(self._execute_single_tool_call, req) for req in tool_requests]
-            results = []
-            for i, future in enumerate(futures):
-                try:
-                    res = future.result(timeout=self.timeout)
-                    results.append(res)
-                except TimeoutError:
-                    req = tool_requests[i]
-                    results.append(self._handle_timeout_error(req))
-            return results
+        """
+        Execute list of tool requests.
+
+        Args:
+            tool_requests: List of tool call requests from LLM.
+
+        Returns: List of tool outputs in order equal to tool requests.
+        """
+        futures = [self.executor.submit(self._execute_single_tool_call, req) for req in tool_requests]
+        results = []
+        for i, future in enumerate(futures):
+            req = tool_requests[i]
+            try:
+                res = future.result(timeout=self.timeout)
+                results.append(res)
+            except TimeoutError:
+                results.append(self._handle_timeout_error(req))
+            except Exception as ex:
+                results.append(self._handle_tool_execution_error(req=req, ex=ex))
+
+        return results
+
+    def shutdown(self):
+        """
+        Call on application shutdown to free up OS threads.
+        """
+        self.executor.shutdown(wait=True)
 
     def _execute_single_tool_call(self, req: types.FunctionCall) -> ToolOutput:
+        """
+        Execute one single tool call.
+
+        Args:
+            req: Tool call request from LLM
+
+        Returns: Tool call output
+        """
         tool = self.tool_index.get(req.name, None)
         if tool is None:
             return self._handle_unknown_tool(req=req)
@@ -48,6 +82,14 @@ class ToolExecutor:
             return self._handle_tool_execution_error(req=req, ex=ex)
 
     def _handle_unknown_tool(self, req: types.FunctionCall) -> ToolOutput:
+        """
+        Compose tool output when incorrect tool name was requested by the LLM.
+
+        Args:
+            req: Tool call request from LLM
+
+        Returns: Tool call output informing LLM about the error
+        """
         logger.error(f'LLM tool "{req.name}" not found.')
         return ToolOutput(
             success=False,
@@ -60,6 +102,14 @@ class ToolExecutor:
 
     @staticmethod
     def _handle_empty_tool_result(req: types.FunctionCall) -> ToolOutput:
+        """
+        Compose tool output when tool returned empty result (dict with no fields).
+
+        Args:
+            req: Tool call request from LLM
+
+        Returns: Tool call output informing LLM about the error
+        """
         logger.error(
             f'LLM tool "{req.name}" returned empty result. '
             f'Tool request: {req.model_dump(mode="json", include={"name", "args"})}'
@@ -72,6 +122,15 @@ class ToolExecutor:
 
     @staticmethod
     def _handle_incorrect_output_type(req: types.FunctionCall, tool_output: Any) -> ToolOutput:
+        """
+        Handle situation where LLM tool returned incorrect output type.
+
+        Args:
+            req: Tool call request from LLM
+            tool_output: Tool call output with incorrect result type
+
+        Returns: Tool call output informing LLM about the error
+        """
         actual_type = type(tool_output).__name__
         logger.error(f'Tool "{req.name}" violated contract: expected ToolOutput, got {actual_type}.')
         return ToolOutput(
@@ -88,6 +147,15 @@ class ToolExecutor:
 
     @staticmethod
     def _handle_tool_execution_error(req: types.FunctionCall, ex: Exception) -> ToolOutput:
+        """
+        Prepare tool output for situation where tool raised exception during execute() function call
+
+        Args:
+            req: Tool call request from LLM
+            ex: Exception raised during execute() function call
+
+        Returns: Tool call output informing LLM about the error
+        """
         logger.error(
             f"Exception raised during tool execution. "
             f'Tool request: {req.model_dump(mode="json", include={"name", "args"})}',
@@ -110,6 +178,15 @@ class ToolExecutor:
         )
 
     def _handle_timeout_error(self, req: types.FunctionCall) -> ToolOutput:
+        """
+        Prepare tool output for situation where tool execution times out.
+
+        Args:
+            req: Tool call request from LLM
+
+        Returns: Tool call output informing LLM about the error
+
+        """
         logger.error(
             f'Tool "{req.name}" timed out after {self.timeout} seconds. '
             f'Tool request: {req.model_dump(mode="json", include={"name", "args"})}'
