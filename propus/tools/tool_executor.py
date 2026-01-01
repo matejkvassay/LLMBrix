@@ -17,18 +17,18 @@ class ToolExecutor:
     Executes required tool calls via multi-threading and handles potential errors in LLM-friendly way.
     """
 
-    def __init__(self, tools: list[BaseTool], n_workers: int = 4, timeout: int | None = 120):
+    def __init__(self, tools: list[BaseTool], max_workers: int = 4, timeout: int | None = 120):
         """
         Args:
             tools: List of tools to execute.
-            n_workers: Number of threads to use.
+            max_workers: Number of threads to use.
             timeout: Timeout in seconds. If timeout is reached tool result for the LLM will mention timeout error.
         """
         names = [t.name for t in tools]
         if len(names) != len(set(names)):
             raise ValueError("Duplicate tool names detected. All tool names must be unique.")
         self.tool_index = {t.name: t for t in tools}
-        self.n_workers = n_workers
+        self.max_workers = max_workers
         self.timeout = timeout
 
     def execute(self, tool_requests: list[types.FunctionCall]) -> list[ToolMsg]:
@@ -60,10 +60,10 @@ class ToolExecutor:
 
         Returns: Iterator over ToolMsg. Order is not preserved.
         """
-        for tool_call, tool_output in self._execute_tools(tool_requests=tool_requests):
+        for tool_call, tool_output in self._execute_tool_calls(tool_requests=tool_requests):
             yield tool_output.to_tool_msg(tool_call=tool_call)
 
-    def _execute_tools(
+    def _execute_tool_calls(
         self, tool_requests: list[types.FunctionCall]
     ) -> Iterator[tuple[types.FunctionCall, ToolOutput]]:
         """
@@ -74,7 +74,7 @@ class ToolExecutor:
 
         Returns: Generator of tool outputs. Order is not preserved.
         """
-        with ThreadPoolExecutor(max_workers=self.n_workers) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             tasks = {
                 executor.submit(self._execute_single_tool_call, tool_call): tool_call for tool_call in tool_requests
             }
