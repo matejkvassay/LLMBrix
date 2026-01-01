@@ -23,6 +23,8 @@ class ToolExecutor:
             try:
                 args = req.args or {}
                 tool_output = tool.execute(**args)
+                if not isinstance(tool_output, ToolOutput):
+                    outputs.append(self._handle_incorrect_output_type(req=req, tool_output=tool_output))
                 if not tool_output.result:
                     outputs.append(self._handle_empty_tool_result(req=req))
                     continue
@@ -38,23 +40,25 @@ class ToolExecutor:
                 "error": f'Tool named "{req.name}" not found. Names of available tools : '
                 f'{list(self.tool_index.keys())}"'
             },
-            debug_trace={"error": "Tool not found.", "tool_request": req.model_dump()},
+            debug_trace={"error": "Tool not found.", "tool_request": req.model_dump(mode="json")},
         )
 
     @staticmethod
     def _handle_empty_tool_result(req: types.FunctionCall) -> ToolOutput:
         logger.error(
-            f'LLM tool "{req.name}" returned empty result. ' f'Tool request: {req.model_dump(include={"name", "args"})}'
+            f'LLM tool "{req.name}" returned empty result. '
+            f'Tool request: {req.model_dump(mode="json", include={"name", "args"})}'
         )
         return ToolOutput(
             result={"error": f'Tool "{req.name}" returned empty result.'},
-            debug_trace={"error": "Tool returned empty result.", "tool_request": req.model_dump()},
+            debug_trace={"error": "Tool returned empty result.", "tool_request": req.model_dump(mode="json")},
         )
 
     @staticmethod
     def _handle_tool_execution_error(req: types.FunctionCall, ex: Exception) -> ToolOutput:
         logger.error(
-            f'Exception raised during tool execution. Tool request: {req.model_dump(include={"name", "args"})}',
+            f"Exception raised during tool execution. "
+            f'Tool request: {req.model_dump(mode="json", include={"name", "args"})}',
             exc_info=ex,
         )
         return ToolOutput(

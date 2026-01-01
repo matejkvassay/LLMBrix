@@ -3,7 +3,7 @@ from enum import Enum
 
 class UserMsgFileTypes(Enum):
     """
-    File types supported as an User input attachment.
+    File types supported as a User input attachment.
     """
 
     # --- IMAGES ---
