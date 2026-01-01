@@ -1,10 +1,11 @@
 import logging
 import traceback
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
-from typing import Any
+from concurrent.futures import ThreadPoolExecutor, TimeoutError, as_completed
+from typing import Any, Iterator
 
 from google.genai import types
 
+from propus.msg import ToolMsg
 from propus.tools.base_tool import BaseTool
 from propus.tools.tool_output import ToolOutput
 
@@ -21,42 +22,71 @@ class ToolExecutor:
         Args:
             tools: List of tools to execute.
             n_workers: Number of threads to use.
-            timeout: Timeout in seconds. If timeout is reached tool result will inform LLM about timeout error.
-                     Beware zombie threads are possible when timeout is reached.
+            timeout: Timeout in seconds. If timeout is reached tool result for the LLM will mention timeout error.
         """
+        names = [t.name for t in tools]
+        if len(names) != len(set(names)):
+            raise ValueError("Duplicate tool names detected. All tool names must be unique.")
         self.tool_index = {t.name: t for t in tools}
         self.n_workers = n_workers
         self.timeout = timeout
-        self.executor = ThreadPoolExecutor(max_workers=n_workers)
 
-    def execute(self, tool_requests: list[types.FunctionCall]) -> list[ToolOutput]:
+    def execute(self, tool_requests: list[types.FunctionCall]) -> list[ToolMsg]:
         """
         Execute list of tool requests.
+        Returns results as list of ToolMsg objects.
+        For each tool call one ToolMsg is returned.
+        If error occurs the ToolMsg will contain information about the error for LLM.
+        Order is not preserved.
+
 
         Args:
             tool_requests: List of tool call requests from LLM.
 
-        Returns: List of tool outputs in order equal to tool requests.
+        Returns: List of ToolMsg. Order is not preserved.
         """
-        futures = [self.executor.submit(self._execute_single_tool_call, req) for req in tool_requests]
-        results = []
-        for i, future in enumerate(futures):
-            req = tool_requests[i]
-            try:
-                res = future.result(timeout=self.timeout)
-                results.append(res)
-            except TimeoutError:
-                results.append(self._handle_timeout_error(req))
-            except Exception as ex:
-                results.append(self._handle_tool_execution_error(req=req, ex=ex))
+        return list(self.execute_iter(tool_requests=tool_requests))
 
-        return results
+    def execute_iter(self, tool_requests: list[types.FunctionCall]) -> Iterator[ToolMsg]:
+        """
+        Execute list of tool requests.
+        Get results as iterator over ToolMsg objects.
+        For each tool call one ToolMsg is yielded.
+        If error occurs the ToolMsg will contain information about the error for LLM.
+        Order is not preserved.
 
-    def shutdown(self):
+        Args:
+            tool_requests: List of tool call requests from LLM.
+
+        Returns: Iterator over ToolMsg. Order is not preserved.
         """
-        Call on application shutdown to free up OS threads.
+        for tool_call, tool_output in self._execute_tools(tool_requests=tool_requests):
+            yield tool_output.to_tool_msg(tool_call=tool_call)
+
+    def _execute_tools(
+        self, tool_requests: list[types.FunctionCall]
+    ) -> Iterator[tuple[types.FunctionCall, ToolOutput]]:
         """
-        self.executor.shutdown(wait=True)
+        Execute list of tool requests. Yields ToolOutput objects.
+
+        Args:
+            tool_requests: List of tool call requests from LLM.
+
+        Returns: Generator of tool outputs. Order is not preserved.
+        """
+        with ThreadPoolExecutor(max_workers=self.n_workers) as executor:
+            tasks = {
+                executor.submit(self._execute_single_tool_call, tool_call): tool_call for tool_call in tool_requests
+            }
+
+            for future in as_completed(tasks):
+                req = tasks[future]
+                try:
+                    yield req, future.result(timeout=self.timeout)
+                except TimeoutError:
+                    yield req, self._handle_timeout_error(req)
+                except Exception as ex:
+                    yield req, self._handle_tool_execution_error(req=req, ex=ex)
 
     def _execute_single_tool_call(self, req: types.FunctionCall) -> ToolOutput:
         """
@@ -70,16 +100,13 @@ class ToolExecutor:
         tool = self.tool_index.get(req.name, None)
         if tool is None:
             return self._handle_unknown_tool(req=req)
-        try:
-            args = req.args if isinstance(req.args, dict) else {}
-            tool_output = tool.execute(**args)
-            if not isinstance(tool_output, ToolOutput):
-                return self._handle_incorrect_output_type(req=req, tool_output=tool_output)
-            if not tool_output.result:
-                return self._handle_empty_tool_result(req=req)
-            return tool_output
-        except Exception as ex:
-            return self._handle_tool_execution_error(req=req, ex=ex)
+        args = req.args if isinstance(req.args, dict) else {}
+        tool_output = tool.execute(**args)
+        if not isinstance(tool_output, ToolOutput):
+            return self._handle_incorrect_output_type(req=req, tool_output=tool_output)
+        if not isinstance(tool_output.result, dict) or tool_output.result == {}:
+            return self._handle_empty_tool_result(req=req)
+        return tool_output
 
     def _handle_unknown_tool(self, req: types.FunctionCall) -> ToolOutput:
         """
