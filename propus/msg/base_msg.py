@@ -2,6 +2,11 @@ from google.genai import Client, types
 
 
 class BaseMsg(types.Content):
+    def __init__(self, artifacts, debug_trace, **kwargs):
+        self.artifacts = artifacts
+        self.debug_trace = debug_trace
+        super().__init__(**kwargs)
+
     def count_tokens(self, client: Client, model_name: str, config: types.CountTokensConfigOrDict | None = None) -> int:
         """
         Compute exact number of tokens this message will produce on input in Gemini API,

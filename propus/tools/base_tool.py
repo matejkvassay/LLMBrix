@@ -35,13 +35,12 @@ class BaseTool(ABC, types.Tool):
         super().__init__(function_declarations=[func_declaration], **kwargs)
 
     @abstractmethod
-    def execute(self, context: dict | None = None, **kwargs) -> ToolOutput:
+    def execute(self, **kwargs) -> ToolOutput:
         """
         Tool execution logic to be implemented by a subclass.
         Note "context" parameter will always be passed by tool execution engine to enable contextualized execution.
 
         Args:
-            context: Can be received or None, each tool should be ready for both cases.
             **kwargs: Any kwargs specific for your tool (replace with named arguments).
                       They must 1:1 match parameters passed in "params" constructor argument.
 

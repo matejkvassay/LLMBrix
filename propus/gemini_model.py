@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Type
 
@@ -8,10 +9,16 @@ from pydantic import BaseModel
 from propus.msg import BaseMsg, ModelMsg
 from propus.tools import BaseTool
 
+logger = logging.getLogger(__name__)
+
 SAFETY_MAX_TOKENS_DEFAULT = 10000
 
 
 class GeminiModel:
+    """
+    Simple wrapper around Gemini API suited for chat applications.
+    """
+
     def __init__(self, gemini_client: Client | None, model_name: str):
         if not gemini_client:
             if not os.environ.get("GOOGLE_API_KEY"):
@@ -45,14 +52,14 @@ class GeminiModel:
         tools: list[BaseTool] | types.ToolListUnion | None = None,
         response_schema: Type[BaseModel] | None = None,
         json_mode: bool = False,
-        temperature: float | None = None,
-        top_p: float | None = None,
-        top_k: int | None = None,
         max_output_tokens: int | None = SAFETY_MAX_TOKENS_DEFAULT,
-        generation_config: GenerationConfig | None = None,
         include_thoughts: bool = False,
         thinking_budget: int = None,
         thinking_level: types.ThinkingLevel | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        top_k: int | None = None,
+        generation_config: GenerationConfig | None = None,
     ):
         """
         Args:
@@ -63,14 +70,9 @@ class GeminiModel:
             json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.
             response_schema: LLM will predict output in this structure, parsed model filled with values can be found
                              in .parsed attribute of the returned ModelMsg.
-            temperature: Float temperature setting, controls randomness of output.
-            top_p: If specified, nucleus sampling will be used.
-            top_k: If specified, top-k sampling will be used.
             max_output_tokens: Hard limit on maximum output tokens LLM can produce.
                                By default, set to a limit to avoid cost explosion incidents.
                                Can be set to None for infinite generation.
-            generation_config: Pass custom google.genai.types.GenerationConfig instance overriding other generation
-                               settings passed.
             include_thoughts: Include LLM internal reasoning tokens in the response. If enabled tokens can be found
                               inside ModelMsg.segments as one of the "THOUGHT" type outputs.
             thinking_budget: Gemini 2 only.
@@ -82,17 +84,15 @@ class GeminiModel:
                              Legacy parameter for Gemini 2.5 models, deprecated in Gemini 3.
             thinking_level: Gemini 3 only.
                             Set thinking level for Gemini 3 models.
+            temperature: Float temperature setting, controls randomness of output.
+            top_p: If specified, nucleus sampling will be used.
+            top_k: If specified, top-k sampling will be used.
+            generation_config: Pass custom google.genai.types.GenerationConfig instance overriding other generation
+                               settings passed.
 
         Returns: ModelMsg object containing response from Gemini model.
 
         """
-        if (response_schema or json_mode) and tools:
-            raise ValueError(
-                "Do not use tools and a response_schema in the same call. "
-                "Best practice: Use tools first to gather data, then call generate "
-                "again with your schema to format the final result."
-            )
-
         if not generation_config:
             generation_config = types.GenerateContentConfig(
                 max_output_tokens=max_output_tokens,
