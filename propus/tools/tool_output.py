@@ -12,8 +12,8 @@ class ToolOutput(BaseModel):
     Contains outputs visible and invisible to LLM, other information and offers way to easily convert to ToolMsg.
     """
 
+    success: bool  # Set to True if tool execution ok. Set to False in order to indicate tool execution failed.
     result: dict[str, JsonValue]  # output from tool execution visible to LLM, must be JSON serializable dict
-    success: bool = True  # Set to False in order to indicate tool execution failed.
     artifacts: Optional[dict[str, Any]] = None  # outputs not visible to LLM (e.g. generated plotly plot)
     debug_trace: Optional[dict[str, Any]] = None  # include details for application developers to be able to debug
 
