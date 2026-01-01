@@ -5,13 +5,23 @@ import PIL.Image
 from propus.gemini_model import GeminiModel
 from propus.msg.user_msg_file_types import UserMsgFileTypes
 from propus.tools.base_tool import BaseTool
+from propus.tools.tool_executor import ToolExecutor
 
 
 class ToolAgent:
-    def __init__(self, gemini_model: GeminiModel, tools: Optional[list[BaseTool]] = None, max_iterations: int = 3):
+    def __init__(
+        self,
+        gemini_model: GeminiModel,
+        tools: Optional[list[BaseTool]] = None,
+        loop_limit: int = 3,
+        tool_timeout: int = 120,
+        max_workers: int = 4,
+    ):
         self.gemini_model = gemini_model
-        self.tools = tools
-        self.max_iterations = max_iterations
+        self.tool_executor = None
+        if tools:
+            self.tool_executor = ToolExecutor(tools=tools, max_workers=max_workers, timeout=tool_timeout)
+        self.loop_limit = loop_limit
 
     def chat(
         self,
