@@ -99,7 +99,7 @@ class GeminiModel:
         gemini_client = Client(api_key=google_api_key)
         return cls(gemini_client=gemini_client, **kwargs)
 
-    def generate(self, messages: list[BaseMsg], system_instruction: str | None = None):
+    def generate(self, messages: list[BaseMsg], system_instruction: str | None = None, disable_tools=False):
         """
         Generate tokens Gemini API.
 
@@ -107,13 +107,18 @@ class GeminiModel:
             messages: Chat history consisting of BaseMsg objects.
                       Has to end with UserMsg (current request to respond to).
             system_instruction: System instruction, overrides instruction set in constructor.
+            disable_tools: Disable LLM tools, sets them to None in generation config for this request.
 
         Returns: ModelMsg object containing response from Gemini model.
 
         """
         generation_config = self.generation_config
-        if system_instruction:
-            generation_config = generation_config.model_copy(update={"system_instruction": system_instruction})
+        if system_instruction or disable_tools:
+            system_instruction = system_instruction or generation_config.system_instruction
+            tools = None if disable_tools else generation_config.tools
+            generation_config = generation_config.model_copy(
+                update={"system_instruction": system_instruction, "tools": tools}
+            )
 
         response = self.gemini_client.models.generate_content(
             model=self.model_name, contents=messages, config=generation_config
