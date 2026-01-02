@@ -4,7 +4,7 @@ from propus.tool_calling.base_tool import BaseTool
 from propus.tool_calling.tool_output import ToolOutput
 
 
-class GetCurrentDatetimeTool(BaseTool):
+class DatetimeTool(BaseTool):
     """
     Provides current system datetime information.
     """
