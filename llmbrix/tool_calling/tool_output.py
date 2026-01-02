@@ -1,9 +1,8 @@
 from typing import Any, Optional
 
 from google.genai import types
-from pydantic import BaseModel, JsonValue
-
 from propus.msg.tool_msg import ToolMsg
+from pydantic import BaseModel, JsonValue
 
 
 class ToolOutput(BaseModel):

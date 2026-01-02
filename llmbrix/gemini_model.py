@@ -4,10 +4,9 @@ from typing import Type
 
 from google.genai import Client, types
 from google.genai.types import GenerationConfig
-from pydantic import BaseModel
-
 from propus.msg import BaseMsg, ModelMsg
 from propus.tool_calling import BaseTool
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 

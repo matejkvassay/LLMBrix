@@ -1,8 +1,7 @@
 from typing import Any, Optional
 
-from pydantic import BaseModel
-
 from propus.tool_calling.tool_param_types import ToolParamTypes
+from pydantic import BaseModel
 
 
 class ToolParam(BaseModel):

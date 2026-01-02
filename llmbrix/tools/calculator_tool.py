@@ -1,5 +1,4 @@
 import sympy as sp
-
 from propus.tool_calling.base_tool import BaseTool
 from propus.tool_calling.tool_output import ToolOutput
 from propus.tool_calling.tool_param import ToolParam

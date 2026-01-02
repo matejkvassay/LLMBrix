@@ -1,7 +1,6 @@
 from typing import Optional
 
 import PIL.Image
-
 from propus.gemini_model import GeminiModel
 from propus.msg.user_msg_file_types import UserMsgFileTypes
 from propus.tool_calling.base_tool import BaseTool

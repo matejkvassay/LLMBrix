@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 from google.genai import types
-
 from propus.msg.base_msg import BaseMsg
 from propus.msg.model_msg import ModelMsg
 

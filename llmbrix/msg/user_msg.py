@@ -1,6 +1,5 @@
 import PIL.Image
 from google.genai import types
-
 from propus.msg.base_msg import BaseMsg
 from propus.msg.user_msg_file_types import UserMsgFileTypes
 

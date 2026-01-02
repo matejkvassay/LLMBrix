@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 from google.genai import types
-
 from propus.tool_calling.tool_output import ToolOutput
 from propus.tool_calling.tool_param import ToolParam
 
