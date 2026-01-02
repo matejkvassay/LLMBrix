@@ -15,7 +15,8 @@ dependencies = [
     "graphviz",
     "pillow",
     "google-genai>=1.56.0",
-    "pydantic"
+    "pydantic",
+    "sympy",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

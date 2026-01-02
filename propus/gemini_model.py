@@ -7,7 +7,7 @@ from google.genai.types import GenerationConfig
 from pydantic import BaseModel
 
 from propus.msg import BaseMsg, ModelMsg
-from propus.tools import BaseTool
+from propus.tool_calling import BaseTool
 
 logger = logging.getLogger(__name__)
 

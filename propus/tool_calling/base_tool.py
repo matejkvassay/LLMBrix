@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from google.genai import types
 
-from propus.tools.tool_output import ToolOutput
-from propus.tools.tool_param import ToolParam
+from propus.tool_calling.tool_output import ToolOutput
+from propus.tool_calling.tool_param import ToolParam
 
 
 class BaseTool(ABC, types.Tool):
@@ -21,6 +21,7 @@ class BaseTool(ABC, types.Tool):
                     going into execute() method.
             **kwargs:
         """
+        params = params if params else []
         properties: Dict[str, Any] = {param.name: param.to_json_dict() for param in params}
         required_params: List[str] = [param.name for param in params if param.required]
         func_declaration = types.FunctionDeclaration(

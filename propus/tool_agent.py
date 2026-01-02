@@ -4,8 +4,8 @@ import PIL.Image
 
 from propus.gemini_model import GeminiModel
 from propus.msg.user_msg_file_types import UserMsgFileTypes
-from propus.tools.base_tool import BaseTool
-from propus.tools.tool_executor import ToolExecutor
+from propus.tool_calling.base_tool import BaseTool
+from propus.tool_calling.tool_executor import ToolExecutor
 
 
 class ToolAgent:

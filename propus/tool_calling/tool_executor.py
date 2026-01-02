@@ -6,8 +6,8 @@ from typing import Any, Iterator
 from google.genai import types
 
 from propus.msg import ToolMsg
-from propus.tools.base_tool import BaseTool
-from propus.tools.tool_output import ToolOutput
+from propus.tool_calling.base_tool import BaseTool
+from propus.tool_calling.tool_output import ToolOutput
 
 logger = logging.getLogger(__name__)
 

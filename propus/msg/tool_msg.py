@@ -36,15 +36,15 @@ class ToolMsg(BaseMsg):
     @classmethod
     def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolMsg"]:
         """
-        Helper to create a list of ToolMsgs from a ModelMsg that requested multiple tools.
+        Helper to create a list of ToolMsgs from a ModelMsg that requested multiple tool calls.
 
         Args:
-            model_msg: The ModelMsg containing the requested tool_calls.
+            model_msg: The ModelMsg containing the requested tool calls.
             results: A list of return values from your local function executions.
                      Must match the order of model_msg.tool_calls.
         """
         calls = model_msg.tool_calls
         if len(calls) != len(results):
-            raise ValueError(f"Count mismatch: Model called {len(calls)} tools, but got {len(results)} results.")
+            raise ValueError(f"Count mismatch: Model called {len(calls)} tool_calling, but got {len(results)} results.")
 
         return [cls(tool_call=call, result=res) for call, res in zip(calls, results)]
