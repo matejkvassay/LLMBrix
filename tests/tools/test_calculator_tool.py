@@ -119,7 +119,9 @@ def test_precision_decimals(calculator):
 
 
 def test_infinity_is_valid(calculator):
-    """Infinity should be a successful result returned as a float inf."""
+    """
+    Infinity should be a successful result returned as a float inf.
+    """
     result = calculator.execute("exp(10000)")
     assert result.success is True
     # float(sp.oo.evalf()) becomes float('inf')
