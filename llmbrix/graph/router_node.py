@@ -1,7 +1,7 @@
 import uuid
 
-from propus.graph.graph_state import GraphState
-from propus.graph.node_base import NodeBase
+from llmbrix.graph.graph_state import GraphState
+from llmbrix.graph.node_base import NodeBase
 
 
 class RouterNode(NodeBase):

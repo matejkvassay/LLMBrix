@@ -1,5 +1,5 @@
 # Install
 
 ```bash
-pip install propus
+pip install llmbrix
 ```

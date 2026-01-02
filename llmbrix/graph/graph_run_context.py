@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from propus.graph.graph_state import GraphState
-from propus.graph.node_base import NodeBase
+from llmbrix.graph.graph_state import GraphState
+from llmbrix.graph.node_base import NodeBase
 
 
 @dataclass

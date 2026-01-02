@@ -4,9 +4,10 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError, as_completed
 from typing import Any, Iterator
 
 from google.genai import types
-from propus.msg import ToolMsg
-from propus.tool_calling.base_tool import BaseTool
-from propus.tool_calling.tool_output import ToolOutput
+
+from llmbrix.msg import ToolMsg
+from llmbrix.tool_calling.base_tool import BaseTool
+from llmbrix.tool_calling.tool_output import ToolOutput
 
 logger = logging.getLogger(__name__)
 

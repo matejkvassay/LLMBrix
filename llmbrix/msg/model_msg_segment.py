@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from propus.msg.model_msg_segment_types import ModelMsgSegmentTypes
+from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
 
 
 @dataclass

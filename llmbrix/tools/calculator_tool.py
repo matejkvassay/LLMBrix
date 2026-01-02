@@ -1,8 +1,9 @@
 import sympy as sp
-from propus.tool_calling.base_tool import BaseTool
-from propus.tool_calling.tool_output import ToolOutput
-from propus.tool_calling.tool_param import ToolParam
-from propus.tool_calling.tool_param_types import ToolParamTypes
+
+from llmbrix.tool_calling.base_tool import BaseTool
+from llmbrix.tool_calling.tool_output import ToolOutput
+from llmbrix.tool_calling.tool_param import ToolParam
+from llmbrix.tool_calling.tool_param_types import ToolParamTypes
 
 TOOL_NAME = "calculator"
 TOOL_DESC = "Computes numerical results for math formulas and averages."

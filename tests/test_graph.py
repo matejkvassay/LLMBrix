@@ -1,10 +1,10 @@
 import pytest
 
-from propus.graph.graph import Graph
-from propus.graph.graph_run_context import GraphRunContext
-from propus.graph.graph_state import GraphState
-from propus.graph.node import Node
-from propus.graph.router_node import RouterNode
+from llmbrix.graph.graph import Graph
+from llmbrix.graph.graph_run_context import GraphRunContext
+from llmbrix.graph.graph_state import GraphState
+from llmbrix.graph.node import Node
+from llmbrix.graph.router_node import RouterNode
 
 
 @Node

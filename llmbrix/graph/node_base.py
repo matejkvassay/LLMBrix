@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from propus.graph.graph_state import GraphState
+from llmbrix.graph.graph_state import GraphState
 
 
 class NodeBase(ABC):

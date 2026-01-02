@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from propus.tools import DatetimeTool
+from llmbrix.tools import DatetimeTool
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def test_mocked_fixed_time(datetime_tool):
     """
     frozen_now = datetime(2026, 1, 2, 10, 0, 0)  # Friday
 
-    with patch("propus.tools.datetime_tool.datetime") as mock_datetime:
+    with patch("llmbrix.tools.datetime_tool.datetime") as mock_datetime:
         mock_datetime.now.return_value = frozen_now
         output = datetime_tool.execute()
         res = output.result

@@ -1,8 +1,9 @@
 from typing import Any, Optional
 
 from google.genai import types
-from propus.msg.tool_msg import ToolMsg
 from pydantic import BaseModel, JsonValue
+
+from llmbrix.msg.tool_msg import ToolMsg
 
 
 class ToolOutput(BaseModel):

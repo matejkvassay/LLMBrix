@@ -1,6 +1,6 @@
 import pytest
 
-from propus.tools import CalculatorTool
+from llmbrix.tools import CalculatorTool
 
 
 @pytest.fixture
