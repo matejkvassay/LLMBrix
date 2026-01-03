@@ -110,6 +110,8 @@ class ToolAgent:
             yield model_msg
             new_messages.append(model_msg)
             if model_msg.tool_calls:
+                if not current_tools:
+                    raise ValueError("Model hallucinated tool calls when no tools were provided.")
                 for tool_msg in self.tool_executor.execute_iter(model_msg.tool_calls):
                     yield tool_msg
                     new_messages.append(tool_msg)
