@@ -22,7 +22,6 @@ class GeminiModel:
         self,
         gemini_client: Client | None,
         model_name: str,
-        tools: list[BaseTool] | types.ToolListUnion | None = None,
         system_instruction: str | None = None,
         response_schema: Type[BaseModel] | None = None,
         json_mode: bool = False,
@@ -38,7 +37,6 @@ class GeminiModel:
         Args:
             gemini_client: google-genai SDK client
             model_name: Name of model to use e.g. "gemini-2.5-flash-lite"
-            tools: List of BaseTool instances.
             system_instruction: Static system instruction. Can be overridden with instruction passed to generate().
             json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.
             response_schema: LLM will predict output in this structure, parsed model filled with values can be found
@@ -73,7 +71,6 @@ class GeminiModel:
             response_schema=response_schema,
             response_mime_type="application/json" if response_schema or json_mode else "text/plain",
             temperature=temperature,
-            tools=tools,
             top_k=top_k,
             top_p=top_p,
             thinking_config=types.ThinkingConfig(
@@ -99,7 +96,12 @@ class GeminiModel:
         gemini_client = Client(api_key=google_api_key)
         return cls(gemini_client=gemini_client, **kwargs)
 
-    def generate(self, messages: list[BaseMsg], system_instruction: str | None = None, disable_tools=False):
+    def generate(
+        self,
+        messages: list[BaseMsg],
+        system_instruction: str | None = None,
+        tools: list[BaseTool] | types.ToolListUnion | None = None,
+    ):
         """
         Generate tokens Gemini API.
 
@@ -107,15 +109,14 @@ class GeminiModel:
             messages: Chat history consisting of BaseMsg objects.
                       Has to end with UserMsg (current request to respond to).
             system_instruction: System instruction, overrides instruction set in constructor.
-            disable_tools: Disable LLM tools, sets them to None in generation config for this request.
+            tools: List of tools for LLM to use.
 
         Returns: ModelMsg object containing response from Gemini model.
 
         """
         generation_config = self.generation_config
-        if system_instruction or disable_tools:
+        if system_instruction or tools:
             system_instruction = system_instruction or generation_config.system_instruction
-            tools = None if disable_tools else generation_config.tools
             generation_config = generation_config.model_copy(
                 update={"system_instruction": system_instruction, "tools": tools}
             )
@@ -123,6 +124,7 @@ class GeminiModel:
         response = self.gemini_client.models.generate_content(
             model=self.model_name, contents=messages, config=generation_config
         )
+
         parsed = None
         if generation_config.response_schema:
             parsed = response.parsed

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterator, Optional
 
 import PIL.Image
 
@@ -37,6 +37,7 @@ class ToolAgent:
         self.system_instruction = system_instruction
         self.chat_history = chat_history
         self.tool_executor = None
+        self.tools = tools
         if tools:
             self.tool_executor = ToolExecutor(tools=tools, max_workers=max_workers, timeout=tool_timeout)
         if loop_limit < 1:
@@ -52,11 +53,8 @@ class ToolAgent:
         gcs_uris: Optional[list[tuple[str, UserMsgFileTypes]]] = None,
     ) -> ModelMsg:
         """
-        Executes one turn of chat. If history is set in constructor it will be updated with all messages.
-
-        Note this method might execute multiple iteration of tool calls and save all messages into chat history if set.
-
-        It will however return only last ModelMsg containing final response from the model.
+        Executes one turn of chat and returns only the final response of the model.
+        Chat history will also be updated with new messages if provided in constructor.
 
         Args:
             text: Text input from user.
@@ -65,25 +63,59 @@ class ToolAgent:
             youtube_url: Youtube video URL to be parsed.
             gcs_uris: List of tuple (URI, mime type) for files to be read from GCS.
 
-        Returns: ModelMsg from final answer of the model.
+        Returns: Final ModelMsg with agent's answer.
+        """
+        msg = None
+        for msg in self.chat_iter(text=text, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris):
+            pass
+        if isinstance(msg, ModelMsg):
+            return msg
+        raise RuntimeError("Agent failed to produce a ModelMsg as the last response.")
+
+    def chat_iter(
+        self,
+        text: str | list[BaseMsg],
+        images: Optional[list[PIL.Image.Image]] = None,
+        files: Optional[list[tuple[bytes, UserMsgFileTypes]]] = None,
+        youtube_url: Optional[str] = None,
+        gcs_uris: Optional[list[tuple[str, UserMsgFileTypes]]] = None,
+    ) -> Iterator[BaseMsg]:
+        """
+        Executes one turn of chat and provides iterator over all produced messages (User, Model & Tool messages).
+        Chat history will also be updated with new messages if provided in constructor.
+
+        Args:
+            text: Text input from user.
+            images: List of PIL images to pass to LLM.
+            files: List of tuples of (byte, type) representing files to be uploaded to LLM.
+            youtube_url: Youtube video URL to be parsed.
+            gcs_uris: List of tuple (URI, mime type) for files to be read from GCS.
+
+        Returns: Iterator over all BaseMsg objects (User, Model & ToolMsg) produced during this chat turn execution.
         """
         user_msg = UserMsg(text=text, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris)
         if self.chat_history:
             messages_hist = self.chat_history.get()
         else:
             messages_hist = []
-        new_messages = [user_msg]
-        tool_iter = 1
+        yield user_msg
+        new_messages: list[BaseMsg] = [user_msg]
+        iteration = 1
         model_msg = None
-        while tool_iter <= self.loop_limit:
+        while iteration <= self.loop_limit:
+            current_tools = self.tools if not (iteration == self.loop_limit) else None
             model_msg = self.gemini_model.generate(
-                messages=messages_hist + new_messages,
-                system_instruction=self.system_instruction,
-                disable_tools=tool_iter == self.loop_limit,
+                messages=messages_hist + new_messages, tools=current_tools, system_instruction=self.system_instruction
             )
+            yield model_msg
             new_messages.append(model_msg)
             if model_msg.tool_calls:
-                new_messages += self.tool_executor.execute(model_msg.tool_calls)
+                for tool_msg in self.tool_executor.execute_iter(model_msg.tool_calls):
+                    yield tool_msg
+                    new_messages.append(tool_msg)
+                iteration += 1
+            else:
+                break
         if self.chat_history:
             self.chat_history.insert(new_messages)
         return model_msg
