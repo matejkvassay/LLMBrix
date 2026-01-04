@@ -1,4 +1,4 @@
-     [build-system]
+[build-system]
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
@@ -8,15 +8,15 @@ authors = [
     { name = "Matej Kvassay", email = "matejkvassay5@gmail.com" }
 ]
 description = "Low abstraction agentic LLM framework."
-version = "0.1.5"
+version = "2.0.0a1"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "graphviz",
-    "jinja2",
-    "openai>=2.8.1",
+    "pillow",
+    "google-genai>=1.56.0",
     "pydantic",
-    "structlog"
+    "sympy",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

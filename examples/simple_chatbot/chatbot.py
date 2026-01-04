@@ -1,22 +1,3 @@
-# About
-
-Low abstraction LLM framework focused on simple chat / agentic applications.
-
-Supports only Gemini API.
-
-In early alpha development.
-
-# Install
-
-```bash
-pip install llmbrix
-```
-
-# Example usage
-
-(see `llmbrix/examples/simple_chatbot/`)
-
-```python
 import dotenv
 
 from llmbrix.chat_history import ChatHistory
@@ -61,5 +42,3 @@ def start_chat():
 
 if __name__ == "__main__":
     start_chat()
-
-```

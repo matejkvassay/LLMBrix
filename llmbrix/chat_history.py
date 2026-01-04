@@ -1,132 +1,121 @@
 from collections import deque
 
-from llmbrix.msg import AssistantMsg, SystemMsg, ToolOutputMsg, ToolRequestMsg, UserMsg
-from llmbrix.msg.msg import Msg
+from llmbrix.msg import BaseMsg, ModelMsg, ToolMsg, UserMsg
 
 
 class ChatHistory:
     """
-    Contains chat message history.
-    - enables adding and retrieval of last k messages from chat history
-    - internally works on level of conversation turns (turn starts with user msg).
-    - it makes sure user, assistant message and related tool messages are kept and removed consistently together.
-    - automatically removes oldest conversation turns as new ones above "max_turns" limit are added
-    - keeps system message always as first message in the chat history (if system message provided)
-
-    Note this strategy of history trimming might not optimally leverage OpenAI API caching.
+    Contains chat message history with automatically applied trimming based on number conversation turns.
+    Each new user message begins new conversation turn.
+    Note this strategy of message trimming might not optimally leverage Gemini API caching.
     """
 
     def __init__(self, max_turns: int = 5):
         """
-        :param max_turns: int, maximum number of conversation turns.
-                         Conversation turns always starts with each new user message and contains all subsequent
-                         non-user messages.
-                         If this limit of conversation turns stored is exceeded the oldest turns are automatically
-                         trimmed from the chat history.
-                         System message is not part of any conversation turn and doesn't count into the max_turns limit.
+        Args:
+            max_turns: Maximum number of conversation turns stored in this conversation history.
+                       Limit is applied automatically when messages are added.
+                       Each conversation turn starts with UserMsg and contains subsequent related
+                       ModelMsg/ToolMsg objects.
         """
-        self.system_msg = None
         self.max_turns = max_turns
         self._conv_turns: deque[_ConversationTurn] = deque(maxlen=max_turns)
 
-    def add(self, msg: Msg):
+    def insert(self, message: BaseMsg):
         """
-        Add new message to chat history.
+        Add a message to the conversation history.
+        If UserMsg is added, new conversation turn is started.
+        If other msg is added its appended to latest conversation turn.
 
-        System message has to be added first (optionally).
-        Other messages are automatically turned into bundles and increase bundle count.
-
-        :param msg: Message of any type.
+        Args:
+            message: BaseMsg instance.
         """
-        if isinstance(msg, SystemMsg):
-            self.system_msg = msg
-        elif isinstance(msg, UserMsg):
-            self._conv_turns.append(_ConversationTurn(user_msg=msg))
-        elif isinstance(msg, (AssistantMsg, ToolRequestMsg, ToolOutputMsg)):
+        if isinstance(message, UserMsg):
+            self._conv_turns.append(_ConversationTurn(user_msg=message))
+        elif isinstance(message, (ToolMsg, ModelMsg)):
             if len(self._conv_turns) == 0:
                 raise ValueError("Conversation must start with a UserMsg.")
-            self._conv_turns[-1].add_followup_message(msg)
+            self._conv_turns[-1].add_followup_message(message)
         else:
-            raise TypeError(f"msg has to be Assistant/Tool/User message, got: {msg.__class__.__name__}")
+            raise TypeError(f"Message has to be one of [ModelMsg, ToolMsg, UserMsg], got: {type(message)}")
 
-    def add_many(self, msgs: list[Msg]):
+    def insert_batch(self, messages: list[BaseMsg]):
         """
-        Add multiple messages to chat history.
-
-        :param msgs: List of messages of any type.
+        Add multiple messages to the conversation history.
+        Args:
+            messages: List of BaseMsg instances.
         """
-        for m in msgs:
-            self.add(m)
+        for m in messages:
+            self.insert(m)
 
-    def get(self, n=None) -> list[Msg]:
+    def get(self, n=None) -> list[BaseMsg]:
         """
-        Retrieve messages from chat history.
+        Fetch messages from conversation history.
+        If
 
-        :param n: (optional) Number of latest conversation turns to retrieve messages from.
-                  Note 1 conversation turn typically contains more than 1 message.
+        Args:
+            n: Number of last conversation turns to fetch messages from.
 
-        :return: List of messages from n latest conversation turns.
+        Returns: List of messages from chat history.
+
         """
-        messages = [self.system_msg] if self.system_msg else []
-        turns = list(self._conv_turns)[-n:] if n is not None else self._conv_turns
-        for turn in turns:
-            messages += turn.flatten()
-        return messages
+        turns = list(self._conv_turns)
+        if n is not None:
+            start_index = max(0, len(turns) - n)
+            turns = turns[start_index:]
+        return [msg for turn in turns for msg in turn.flatten()]
 
-    def count_conv_turns(self) -> int:
+    def pop(self) -> list[BaseMsg]:
         """
-        Get number of conversation turns stored in this chat history.
-        System message is not included in this count (not part of conversation turn).
+        Remove and return messages from the last conversation turn.
+        Useful for "undo" operations.
 
-        :return: int number of conversation turns.
+        Returns: List of messages from the last conversation turn.
+        """
+        if self.count_conversation_turns() > 0:
+            return self._conv_turns.pop().flatten()
+        return []
+
+    def count_conversation_turns(self) -> int:
+        """
+        Count number of conversation turns stored in this conversation history.
+
+        Returns: Number of conversation turns stored.
         """
         return len(self._conv_turns)
 
+    def count_messages(self):
+        """
+        Count how many messages are stored in this conversation history.
+
+        Returns: Number of messages stored.
+        """
+        return sum(len(t) for t in self._conv_turns)
+
     def __len__(self):
         """
-        Get number of messages stored in this chat history.
-        System message is included in this count.
+        Count how many messages are stored in this conversation history.
 
-        :return: int number of stored messages
+        Returns: Number of messages stored.
         """
-        sys_count = 0 if self.system_msg is None else 1
-        return sys_count + sum(len(t) for t in self._conv_turns)
+        return self.count_messages()
 
 
 class _ConversationTurn:
     """
-    Represents one conversation turn.
+    Hold messages for a single conversation turn.
     Conversation turn starts with user message and contains all subsequent non-user messages added to chat history.
-    Not turn does not include system msg.
     """
 
     def __init__(self, user_msg: UserMsg):
-        """
-        :param user_msg: User message
-        """
         self.user_msg = user_msg
-        self.llm_responses: list[AssistantMsg | ToolRequestMsg | ToolOutputMsg] = []
+        self.llm_responses: list[ModelMsg | ToolMsg] = []
 
-    def add_followup_message(self, msg: AssistantMsg | ToolRequestMsg | ToolOutputMsg):
-        """
-        Add non-user follow-up message.
-
-        :param msg: one of AssistantMsg | ToolRequestMsg | ToolOutputMsg
-        """
+    def add_followup_message(self, msg: ModelMsg | ToolMsg):
         self.llm_responses.append(msg)
 
-    def flatten(self) -> list[Msg]:
-        """
-        Return all messages from this conversation turn as a list.
-
-        :return: List of messages.
-        """
+    def flatten(self) -> list[BaseMsg]:
         return [self.user_msg] + self.llm_responses
 
     def __len__(self) -> int:
-        """
-        Get number of messages stored in this conversation turn.
-
-        :return: int
-        """
         return 1 + len(self.llm_responses)
