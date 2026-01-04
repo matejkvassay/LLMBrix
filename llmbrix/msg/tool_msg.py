@@ -17,6 +17,9 @@ class ToolMsg(BaseMsg):
     This is sent back to the LLM as the 'Function Response'.
     """
 
+    tool_name: str
+    tool_args: dict | None = None
+
     def __init__(self, tool_call: types.FunctionCall, result: Any):
         """
         Args:
@@ -31,7 +34,7 @@ class ToolMsg(BaseMsg):
         else:
             response_dict = result
         part = types.Part.from_function_response(name=tool_call.name, response=response_dict)
-        super().__init__(role=TOOL_ROLE_NAME, parts=[part])
+        super().__init__(role=TOOL_ROLE_NAME, parts=[part], tool_name=tool_call.name, tool_args=tool_call.args)
 
     @classmethod
     def from_results(cls, model_msg: ModelMsg, results: list[Any]) -> list["ToolMsg"]:

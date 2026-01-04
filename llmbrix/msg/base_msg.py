@@ -5,6 +5,15 @@ class BaseMsg(types.Content):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def is_user(self):
+        return self.role == "user"
+
+    def is_model(self):
+        return self.role == "model"
+
+    def is_tool(self):
+        return self.role == "function"
+
     def count_tokens(self, client: Client, model_name: str, config: types.CountTokensConfigOrDict | None = None) -> int:
         """
         Compute exact number of tokens this message will produce on input in Gemini API,

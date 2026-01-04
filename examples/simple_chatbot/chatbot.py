@@ -12,7 +12,7 @@ chat_history = ChatHistory(max_turns=5)
 
 agent = ToolAgent(
     gemini_model=model,
-    system_instruction="You are Kevin, chatbot assistant that does fun joke puns in every response.",
+    system_instruction="You are Kevin, super brief to the point chatbot assistant. Speak in corporate words.",
     chat_history=ChatHistory(max_turns=5),
     tools=[CalculatorTool(), DatetimeTool()],
     loop_limit=2,
@@ -31,8 +31,11 @@ def start_chat():
             print(f"Kevin: {response.text}")
             break
         try:
-            response = agent.chat(user_text)
-            print(f"Kevin: {response.text}")
+            for agent_msg in agent.chat_iter(user_text):
+                if agent_msg.is_model() and agent_msg.text:
+                    print(f"Kevin: {agent_msg.text}")
+                elif agent_msg.is_tool():
+                    print(f"Kevin used tool: {agent_msg.tool_name} with args: {agent_msg.tool_args}")
         except Exception as e:
             print(f"Error: {e}")
 
