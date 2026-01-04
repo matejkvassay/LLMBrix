@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Type
+from typing import Optional, Type
 
 from google.genai import Client, types
 from pydantic import BaseModel
@@ -20,24 +20,25 @@ class GeminiModel:
 
     def __init__(
         self,
-        gemini_client: Client | None,
-        model_name: str,
-        system_instruction: str | None = None,
-        response_schema: Type[BaseModel] | None = None,
+        gemini_client: Optional[Client] = None,
+        model_name: str = "gemini-2.5-flash-lite",
+        system_instruction: Optional[str] = None,
+        tools: Optional[list[BaseTool] | types.ToolListUnion] = None,
+        response_schema: Optional[Type[BaseModel]] = None,
         json_mode: bool = False,
-        max_output_tokens: int | None = SAFETY_MAX_TOKENS_DEFAULT,
+        max_output_tokens: Optional[int] = SAFETY_MAX_TOKENS_DEFAULT,
         include_thoughts: bool = False,
-        thinking_budget: int = None,
+        thinking_budget: Optional[int] = None,
         thinking_level: types.ThinkingLevel | None = None,
-        temperature: float | None = None,
-        top_p: float | None = None,
-        top_k: int | None = None,
+        temperature: Optional[float] = 0.0,
+        **extra_config_kwargs,
     ):
         """
         Args:
             gemini_client: google-genai SDK client
             model_name: Name of model to use e.g. "gemini-2.5-flash-lite"
             system_instruction: Static system instruction. Can be overridden with instruction passed to generate().
+            tools: List of tools for LLM to use.
             json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.
             response_schema: LLM will predict output in this structure, parsed model filled with values can be found
                              in .parsed attribute of the returned ModelMsg.
@@ -55,9 +56,8 @@ class GeminiModel:
                              Legacy parameter for Gemini 2.5 models, deprecated in Gemini 3.
             thinking_level: Gemini 3 only.
                             Set thinking level for Gemini 3 models.
-            temperature: Float temperature setting, controls randomness of output.
-            top_p: If specified, nucleus sampling will be used.
-            top_k: If specified, top-k sampling will be used.
+            temperature: Float temperature setting, controls randomness of output. Set to 0 by default.
+            extra_config_kwargs: Extra config kwargs to be set to types.GenerateContentConfig object construction
         """
         if not gemini_client:
             if not os.environ.get("GOOGLE_API_KEY"):
@@ -71,11 +71,11 @@ class GeminiModel:
             response_schema=response_schema,
             response_mime_type="application/json" if response_schema or json_mode else "text/plain",
             temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
+            tools=tools,
             thinking_config=types.ThinkingConfig(
                 include_thoughts=include_thoughts, thinking_budget=thinking_budget, thinking_level=thinking_level
             ),
+            **extra_config_kwargs,
         )
 
     @classmethod
@@ -99,8 +99,10 @@ class GeminiModel:
     def generate(
         self,
         messages: list[BaseMsg],
-        system_instruction: str | None = None,
-        tools: list[BaseTool] | types.ToolListUnion | None = None,
+        system_instruction: Optional[str] = None,
+        tools: Optional[list[BaseTool] | types.ToolListUnion] = None,
+        tool_call_required: bool = False,
+        **extra_config_kwargs,
     ):
         """
         Generate tokens Gemini API.
@@ -108,22 +110,41 @@ class GeminiModel:
         Args:
             messages: Chat history consisting of BaseMsg objects.
                       Has to end with UserMsg (current request to respond to).
-            system_instruction: System instruction, overrides instruction set in constructor.
-            tools: List of tools for LLM to use.
+            system_instruction: System instruction. Overrides instruction set in constructor.
+            tools: List of tools for LLM to use. Overrides list of tools set in constructor.
+            tool_call_required: If True LLM will be forced to use a tool call (tool mode set to "ANY")
+            extra_config_kwargs: Extra config kwargs to be set to types.GenerateContentConfig object construction.
+                                 Overrides constructor - provided generation config kwargs.
 
         Returns: ModelMsg object containing response from Gemini model.
-
         """
         generation_config = self.generation_config
-        if system_instruction or tools:
+        if system_instruction or tools or extra_config_kwargs:
             system_instruction = system_instruction or generation_config.system_instruction
-            generation_config = generation_config.model_copy(
-                update={"system_instruction": system_instruction, "tools": tools}
-            )
+            tool_config = None
+            if tools:
+                mode = (
+                    types.FunctionCallingConfigMode.ANY if tool_call_required else types.FunctionCallingConfigMode.AUTO
+                )
+                tool_config = types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=mode))
+            updated_config_fields = {
+                "system_instruction": system_instruction,
+                "tools": tools,
+                "tool_config": tool_config,
+            }
+            updated_config_fields.update(extra_config_kwargs)
+            generation_config = generation_config.model_copy(update=updated_config_fields)
 
         response = self.gemini_client.models.generate_content(
             model=self.model_name, contents=messages, config=generation_config
         )
+
+        if not response.candidates or not response.candidates[0].content.parts:
+            logger.warning(
+                f"Gemini returned an empty response. "
+                f"Finish reason: {response.candidates[0].finish_reason if response.candidates else 'Unknown'}"
+            )
+            return ModelMsg(parts=[])
 
         parsed = None
         if generation_config.response_schema:
