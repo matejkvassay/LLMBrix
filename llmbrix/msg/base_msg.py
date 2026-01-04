@@ -2,9 +2,7 @@ from google.genai import Client, types
 
 
 class BaseMsg(types.Content):
-    def __init__(self, artifacts, debug_trace, **kwargs):
-        self.artifacts = artifacts
-        self.debug_trace = debug_trace
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def count_tokens(self, client: Client, model_name: str, config: types.CountTokensConfigOrDict | None = None) -> int:

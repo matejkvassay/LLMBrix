@@ -1,6 +1,7 @@
 import io
 import logging
 from functools import cached_property
+from typing import Optional
 
 import PIL.Image
 from google.genai import types
@@ -41,7 +42,9 @@ class ModelMsg(BaseMsg):
     Due to property caching this implementation sacrifices higher memory usage for lower CPU load at attribute access.
     """
 
-    def __init__(self, parts: list[types.Part], parsed: dict | None = None):
+    parsed: Optional[dict] = None
+
+    def __init__(self, parts: list[types.Part], parsed: Optional[dict] = None):
         """
         Args:
             parts: Part objects from Content object returned by Gemini API.
@@ -49,8 +52,7 @@ class ModelMsg(BaseMsg):
             parsed: Parsed JSON with LLM response. Use in case structured output is required,
                     the value will be stored in .parsed attribute.
         """
-        self.parsed = parsed
-        super().__init__(role=MODEL_ROLE_NAME, parts=parts)
+        super().__init__(role=MODEL_ROLE_NAME, parts=parts, parsed=parsed)
 
     @classmethod
     def from_text(cls, text: str):
