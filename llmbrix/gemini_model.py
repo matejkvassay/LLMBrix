@@ -21,7 +21,7 @@ class GeminiModel:
     def __init__(
         self,
         gemini_client: Optional[Client] = None,
-        model_name: str = "gemini-2.5-flash-lite",
+        model: str = "gemini-2.5-flash-lite",
         system_instruction: Optional[str] = None,
         tools: Optional[list[BaseTool] | types.ToolListUnion] = None,
         response_schema: Optional[Type[BaseModel]] = None,
@@ -35,8 +35,9 @@ class GeminiModel:
     ):
         """
         Args:
-            gemini_client: google-genai SDK client
-            model_name: Name of model to use e.g. "gemini-2.5-flash-lite"
+            gemini_client: Client object from google-genai SDK.
+                           If not provided then it will be automatically created from GOOGLE_API_KEY env var.
+            model: Name of model to use e.g. "gemini-2.5-flash-lite"
             system_instruction: Static system instruction. Can be overridden with instruction passed to generate().
             tools: List of tools for LLM to use.
             json_mode: If True LLM will respond JSON outputs, otherwise plaintext outputs will be received.
@@ -64,7 +65,7 @@ class GeminiModel:
                 raise ValueError("You have to either set env var GOOGLE_API_KEY or pass a gemini_client object.")
             gemini_client = Client()
         self.gemini_client = gemini_client
-        self.model_name = model_name
+        self.model = model
         self.generation_config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             max_output_tokens=max_output_tokens,
@@ -136,7 +137,7 @@ class GeminiModel:
             generation_config = generation_config.model_copy(update=updated_config_fields)
 
         response = self.gemini_client.models.generate_content(
-            model=self.model_name, contents=messages, config=generation_config
+            model=self.model, contents=messages, config=generation_config
         )
 
         if not response.candidates or not response.candidates[0].content.parts:

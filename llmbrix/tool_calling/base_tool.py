@@ -35,6 +35,10 @@ class BaseTool(ABC, types.Tool):
         )
         super().__init__(function_declarations=[func_declaration], **kwargs)
 
+    @property
+    def name(self):
+        return self.function_declarations[0].name
+
     @abstractmethod
     def execute(self, **kwargs) -> ToolOutput:
         """
