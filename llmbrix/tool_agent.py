@@ -119,5 +119,5 @@ class ToolAgent:
             else:
                 break
         if self.chat_history:
-            self.chat_history.insert(new_messages)
+            self.chat_history.insert_batch(new_messages)
         return model_msg
