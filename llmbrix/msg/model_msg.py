@@ -99,7 +99,7 @@ class ModelMsg(BaseMsg):
 
         Returns: list of PIL images.
         """
-        return [s.content for s in self.get_segments_by_type(ModelMsgSegmentTypes.IMAGE)]
+        return [PIL.Image.open(io.BytesIO(s.content)) for s in self.get_segments_by_type(ModelMsgSegmentTypes.IMAGE)]
 
     @cached_property
     def audio(self) -> list[tuple[io.BytesIO, str]]:
@@ -108,7 +108,7 @@ class ModelMsg(BaseMsg):
 
         Returns: list of tuples: (audio_bytes, mime_type)
         """
-        return [(s.content, s.mime_type) for s in self.get_segments_by_type(ModelMsgSegmentTypes.AUDIO)]
+        return [(io.BytesIO(s.content), s.mime_type) for s in self.get_segments_by_type(ModelMsgSegmentTypes.AUDIO)]
 
     @cached_property
     def segments(self) -> list[ModelMsgSegment]:
@@ -137,11 +137,9 @@ class ModelMsg(BaseMsg):
                 mime = part.inline_data.mime_type or "application/octet-stream"
                 data = part.inline_data.data
                 if mime.startswith("image/"):
-                    content = PIL.Image.open(io.BytesIO(data))
-                    segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.IMAGE, content=content, mime_type=mime))
+                    segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.IMAGE, content=data, mime_type=mime))
                 elif mime.startswith("audio/"):
-                    content = io.BytesIO(data)
-                    segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.AUDIO, content=content, mime_type=mime))
+                    segments.append(ModelMsgSegment(type=ModelMsgSegmentTypes.AUDIO, content=data, mime_type=mime))
                 else:
                     segments.append(
                         ModelMsgSegment(type=ModelMsgSegmentTypes.UNSUPPORTED_PART, content=data, mime_type=mime)
