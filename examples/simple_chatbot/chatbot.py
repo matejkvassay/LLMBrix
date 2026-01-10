@@ -13,7 +13,7 @@ chat_history = ChatHistory(max_turns=5)
 agent = ToolAgent(
     gemini_model=model,
     system_instruction="You are Kevin, super brief to the point chatbot assistant. Speak in corporate words.",
-    chat_history=ChatHistory(max_turns=5),
+    chat_history=chat_history,
     tools=[CalculatorTool(), DatetimeTool()],
     loop_limit=2,
     tool_timeout=30,
