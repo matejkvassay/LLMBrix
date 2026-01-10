@@ -1,7 +1,7 @@
 import io
 import logging
 from functools import cached_property
-from typing import Optional
+from typing import Any, Optional
 
 import PIL.Image
 from google.genai import types
@@ -42,7 +42,7 @@ class ModelMsg(BaseMsg):
     Due to property caching this implementation sacrifices higher memory usage for lower CPU load at attribute access.
     """
 
-    parsed: Optional[dict] = None
+    parsed: Optional[Any] = None
 
     def __init__(self, parts: list[types.Part], parsed: Optional[dict] = None):
         """

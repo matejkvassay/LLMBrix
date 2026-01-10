@@ -101,6 +101,7 @@ class GeminiModel:
         self,
         messages: list[BaseMsg],
         system_instruction: Optional[str] = None,
+        response_schema: Optional[Type[BaseModel]] = None,
         tools: Optional[list[BaseTool] | types.ToolListUnion] = None,
         tool_call_required: bool = False,
         **extra_config_kwargs,
@@ -112,15 +113,19 @@ class GeminiModel:
             messages: Chat history consisting of BaseMsg objects.
                       Has to end with UserMsg (current request to respond to).
             system_instruction: System instruction. Overrides instruction set in constructor.
+            response_schema: LLM will predict output in this structure, parsed model filled with values can be found
+                 in .parsed attribute of the returned ModelMsg. Overrides response schema set in constructor.
             tools: List of tools for LLM to use. Overrides list of tools set in constructor.
             tool_call_required: If True LLM will be forced to use a tool call (tool mode set to "ANY")
             extra_config_kwargs: Extra config kwargs to be set to types.GenerateContentConfig object construction.
                                  Overrides constructor - provided generation config kwargs.
+                                 N ote some args might not work depending on other settings
+                                 (e.g. ToolConfig is set automatically based on tool_call_required param.).
 
         Returns: ModelMsg object containing response from Gemini model.
         """
         generation_config = self.generation_config
-        if system_instruction or tools or extra_config_kwargs:
+        if system_instruction or tools or response_schema or extra_config_kwargs:
             system_instruction = system_instruction or generation_config.system_instruction
             tool_config = None
             if tools:
@@ -133,6 +138,10 @@ class GeminiModel:
                 "tools": tools,
                 "tool_config": tool_config,
             }
+            if response_schema:
+                updated_config_fields.update(
+                    {"response_schema": response_schema, "response_mime_type": "application/json"}
+                )
             updated_config_fields.update(extra_config_kwargs)
             generation_config = generation_config.model_copy(update=updated_config_fields)
 

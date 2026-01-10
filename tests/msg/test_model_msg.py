@@ -1,4 +1,5 @@
 from google.genai import types
+from pydantic import BaseModel
 
 from llmbrix.msg.model_msg import ModelMsg
 from llmbrix.msg.model_msg_segment_types import ModelMsgSegmentTypes
@@ -39,3 +40,20 @@ def test_model_unsupported_part_fallback():
     parts = [types.Part(video_metadata=types.VideoMetadata(fps=60))]
     msg = ModelMsg(parts=parts)
     assert msg.segments[0].type == ModelMsgSegmentTypes.UNSUPPORTED_PART
+
+
+def test_model_msg_structured_output_validation():
+    class TestSchema(BaseModel):
+        answer: str
+        confidence: float
+
+    mock_parsed = TestSchema(answer="The capital is Paris", confidence=0.99)
+    parts = [types.Part.from_text(text='{"answer": "Paris", "confidence": 0.99}')]
+    msg = ModelMsg(parts=parts, parsed=mock_parsed)
+    assert msg.parsed is not None
+    assert isinstance(msg.parsed, BaseModel)
+    assert msg.parsed.answer == "The capital is Paris"
+    assert msg.parsed.confidence == 0.99
+    dump = msg.model_dump()
+    print(dump)
+    assert dump["parsed"]["answer"] == "The capital is Paris"
