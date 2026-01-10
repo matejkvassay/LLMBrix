@@ -115,7 +115,6 @@ class ToolAgent:
         yield user_msg
         new_messages: list[BaseMsg] = [user_msg]
         iteration = 1
-        model_msg = None
         while iteration <= self.loop_limit:
             current_tools = self.tools if not (iteration == self.loop_limit) else None
             model_msg = self.gemini_model.generate(
@@ -132,6 +131,5 @@ class ToolAgent:
                 iteration += 1
             else:
                 break
-        if self.chat_history:
+        if self.chat_history is not None:
             self.chat_history.insert_batch(new_messages)
-        return model_msg
