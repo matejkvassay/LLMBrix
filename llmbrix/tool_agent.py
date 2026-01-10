@@ -46,7 +46,7 @@ class ToolAgent:
 
     def chat(
         self,
-        text: str | list[BaseMsg],
+        user_input: str | UserMsg,
         images: Optional[list[PIL.Image.Image]] = None,
         files: Optional[list[tuple[bytes, UserMsgFileTypes]]] = None,
         youtube_url: Optional[str] = None,
@@ -57,7 +57,9 @@ class ToolAgent:
         Chat history will also be updated with new messages if provided in constructor.
 
         Args:
-            text: Text input from user.
+            user_input:
+                If str is passed it will be used as text input from user, other args will be used as well if provided.
+                If UserMsg is passed then other args will be ignored and this instance of UserMsg will be used as input.
             images: List of PIL images to pass to LLM.
             files: List of tuples of (byte, type) representing files to be uploaded to LLM.
             youtube_url: Youtube video URL to be parsed.
@@ -66,7 +68,9 @@ class ToolAgent:
         Returns: Final ModelMsg with agent's answer.
         """
         msg = None
-        for msg in self.chat_iter(text=text, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris):
+        for msg in self.chat_iter(
+            user_input=user_input, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris
+        ):
             pass
         if isinstance(msg, ModelMsg):
             return msg
@@ -74,7 +78,7 @@ class ToolAgent:
 
     def chat_iter(
         self,
-        text: str | list[BaseMsg],
+        user_input: str | UserMsg,
         images: Optional[list[PIL.Image.Image]] = None,
         files: Optional[list[tuple[bytes, UserMsgFileTypes]]] = None,
         youtube_url: Optional[str] = None,
@@ -85,7 +89,9 @@ class ToolAgent:
         Chat history will also be updated with new messages if provided in constructor.
 
         Args:
-            text: Text input from user.
+            user_input:
+                If str is passed it will be used as text input from user, other args will be used as well if provided.
+                If UserMsg is passed then other args will be ignored and this instance of UserMsg will be used as input.
             images: List of PIL images to pass to LLM.
             files: List of tuples of (byte, type) representing files to be uploaded to LLM.
             youtube_url: Youtube video URL to be parsed.
@@ -93,7 +99,15 @@ class ToolAgent:
 
         Returns: Iterator over all BaseMsg objects (User, Model & ToolMsg) produced during this chat turn execution.
         """
-        user_msg = UserMsg(text=text, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris)
+        user_msg = user_input
+        if isinstance(user_msg, UserMsg):
+            if images or files or youtube_url or gcs_uris:
+                raise ValueError(
+                    "Cannot combine multimodal inputs (image, file,...) with UserMsg user_input."
+                    "Either pass user_input as str or set all inputs inside UserMsg object."
+                )
+        else:
+            user_msg = UserMsg(text=user_input, images=images, files=files, youtube_url=youtube_url, gcs_uris=gcs_uris)
         if self.chat_history:
             messages_hist = self.chat_history.get()
         else:
